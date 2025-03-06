@@ -54,6 +54,21 @@ export default function SuccessPage() {
     }
   };
 
+  // Function to add the hovered word to the database
+  const handleAddHoveredWord = async () => {
+    if (!hoveredWord?.word) return; // Don't do anything if no word is hovered
+
+    // Add the word to the database if it's not already present
+    if (!words.includes(hoveredWord.word)) {
+      const { error } = await supabase.from("messages").insert([{ text: hoveredWord.word }]);
+      if (error) {
+        console.error("Error adding hovered word:", error);
+      } else {
+        setWords([...words, hoveredWord.word]);
+      }
+    }
+  };
+
   // This function applies highlighting to the generated story
   const applyHighlighting = (story: string) => {
     let highlightedText = story;
@@ -152,7 +167,7 @@ export default function SuccessPage() {
             Generate Story
           </Button>
           <div className="bg-gray-50 rounded-lg p-6 mt-4 relative">
-            <p className="text-gray-600 relative text-2xl" >
+            <p className="text-gray-600 relative text-2xl">
               {generatedStory.split(/\b/).map((word, index) => {
                 const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
 
@@ -160,7 +175,6 @@ export default function SuccessPage() {
                   <span
                     key={index}
                     className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(cleanWord) ? 'bg-yellow-300' : ''}`}
-                    
                     onMouseEnter={() => setHoveredWord({ word: cleanWord, index })}
                     onMouseLeave={() => setHoveredWord(null)}
                   >
@@ -171,11 +185,11 @@ export default function SuccessPage() {
                         <p className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</p>
                         <p className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</p>
 
-                      <button className="mt-2 w-full bg-purple-500 text-white py-1 px-2 rounded text-xs flex items-center justify-center hover:bg-purple-600">
-                        Add to List +
-                      </button>
+                        <button className="mt-2 w-full bg-purple-500 text-white py-1 px-2 rounded text-xs flex items-center justify-center hover:bg-purple-600" onClick={handleAddHoveredWord}>
+                          Add to List +
+                        </button>
 
-                        <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-3 h-3 bg-gray-100 rotate-45 border border-gray-300"></div>
+                        <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-gray-100 rotate-45 border border-gray-300"></div>
                       </div>
                     )}
                   </span>
