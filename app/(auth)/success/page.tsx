@@ -14,6 +14,8 @@ export default function SuccessPage() {
   const [highlightedStory, setHighlightedStory] = useState("");
   const [hoveredWord, setHoveredWord] = useState<{ word: string; index: number } | null>(null);
   const [definitions, setDefinitions] = useState<{ [key: string]: { definition: string; partOfSpeech: string } }>({});
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // Fetch words from Supabase database
   useEffect(() => {
@@ -95,8 +97,30 @@ export default function SuccessPage() {
     if (data?.story) {
       setGeneratedStory(data.story);
       applyHighlighting(data.story);
+      await generateImageFromStory(data.story);
     } else {
       setGeneratedStory("Failed to generate story.");
+    }
+  };
+
+  // This function generates an image from the story
+  const generateImageFromStory = async (story: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ story }),
+      });
+
+      const data = await response.json();
+      if (data?.imageUrl) {
+        setImageUrl(data.imageUrl);
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -226,13 +250,22 @@ export default function SuccessPage() {
           </div>
         </div>
 
-        {/* Right-Aligned Image */}
+        {/* Right-Aligned Image Section */}
         <div className="flex w-1/2 justify-center items-center">
-          <img
-            src="https://www.haworth.com/content/dam/surfaces/north-america/trim/smooth/other/7r_10/7r_10.jpg"
-            alt="Practice Image of Grey Square"
-            className="w-full max-w-lg h-auto object-contain rounded-lg shadow-lg"
-          />
+          {/* Loading Spinner Section */}
+          {loading ? (
+            <div className="mt-8 flex justify-center">
+              <div className="spinner-border animate-spin border-4 border-t-4 border-purple-500 rounded-full w-16 h-16"></div>
+            </div>
+          ) : (
+            // Displays the image once it's generated
+            imageUrl && (
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-4"></h3>
+                <img src={imageUrl} alt="Generated Image" className="w-full max-w-2xl h-auto object-contain rounded-lg shadow-lg" />
+              </div>
+            )
+          )}
         </div>
       </main>
     </div>
