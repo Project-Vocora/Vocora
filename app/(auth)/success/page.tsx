@@ -59,7 +59,7 @@ export default function SuccessPage() {
     let highlightedText = story;
 
     Array.from(selectedWords).forEach((word) => {
-      const regex = new RegExp(`\\b${word}\\b`, "gi");
+      const regex = new RegExp(`\\b${word.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&")}\\b`, "gi");
       highlightedText = highlightedText.replace(regex, `<span class="bg-yellow-300 font-bold px-1 rounded">${word}</span>`);
     });
 
@@ -152,34 +152,37 @@ export default function SuccessPage() {
             Generate Story
           </Button>
           <div className="bg-gray-50 rounded-lg p-6 mt-4 relative">
-            <p className="text-gray-600 relative">
-              <span
-                className="relative inline-block"
-                dangerouslySetInnerHTML={{ __html: highlightedStory || generatedStory }}
-              />
-              {generatedStory.split(" ").map((word, index) => (
-                <span
-                  key={index}
-                  className="relative inline-block cursor-pointer hover:underline"
-                  onMouseEnter={() => setHoveredWord({ word, index })}
-                  onMouseLeave={() => setHoveredWord(null)}
-                >
-                  {word}
-                  {hoveredWord && hoveredWord.word === word && hoveredWord.index === index && definitions[word] && (
-                    <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm">
-                      <p className="font-bold text-black">{word}</p>
-                      <p className="text-gray-500 italic">{definitions[word]?.partOfSpeech || "noun"}</p>
-                      <p className="text-gray-700">{definitions[word]?.definition || "No definition found."}</p>
+            <p className="text-gray-600 relative text-2xl" >
+              {generatedStory.split(/\b/).map((word, index) => {
+                const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
+
+                return cleanWord ? (
+                  <span
+                    key={index}
+                    className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(cleanWord) ? 'bg-yellow-300' : ''}`}
+                    
+                    onMouseEnter={() => setHoveredWord({ word: cleanWord, index })}
+                    onMouseLeave={() => setHoveredWord(null)}
+                  >
+                    {word}
+                    {hoveredWord && hoveredWord.word === cleanWord && hoveredWord.index === index && definitions[cleanWord] && (
+                      <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm">
+                        <p className="font-bold text-black">{cleanWord}</p>
+                        <p className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</p>
+                        <p className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</p>
 
                       <button className="mt-2 w-full bg-purple-500 text-white py-1 px-2 rounded text-xs flex items-center justify-center hover:bg-purple-600">
                         Add to List +
                       </button>
 
-                      <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-3 h-3 bg-gray-100 rotate-45 border border-gray-300"></div>
-                    </div>
-                  )}
-                </span>
-              ))}
+                        <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-3 h-3 bg-gray-100 rotate-45 border border-gray-300"></div>
+                      </div>
+                    )}
+                  </span>
+                ) : (
+                  word
+                );
+              })}
             </p>
           </div>
         </div>
