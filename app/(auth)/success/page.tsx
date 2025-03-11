@@ -46,8 +46,14 @@ export default function SuccessPage() {
   // This function adds a new word to the database
   const handleAddWord = async () => {
     if (newWord.trim() === "") return;
-    const { error } = await supabase.from("messages").insert([{ text: newWord }]);
-  
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user){
+      console.error("Error adding new word:", userError);
+      return;
+    }
+    const { error } = await supabase.from("messages").insert([
+      { text: newWord, uid: user.id }
+    ]);
     if (error) {
       console.error("Error adding new word:", error);
     } else {
