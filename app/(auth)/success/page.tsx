@@ -20,11 +20,16 @@ export default function SuccessPage() {
   // Fetch words from Supabase database
   useEffect(() => {
     const fetchWords = async () => {
-      const { data, error } = await supabase.from("messages").select("text");
+      const { data, error: userError } = await supabase.auth.getUser();
+
+      const userId = data.user?.id;
+      const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
+      
+      const { data: wordsData, error } = await supabase.from("messages").select("text").in("uid", [userId, sharedUserId]);;
       if (error) {
         console.error("Error fetching words:", error);
       } else {
-        setWords(data.map((row) => row.text));
+        setWords(wordsData.map((row) => row.text));
       }
     };
     fetchWords();
