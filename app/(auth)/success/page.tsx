@@ -16,6 +16,8 @@ export default function SuccessPage() {
   const [definitions, setDefinitions] = useState<{ [key: string]: { definition: string; partOfSpeech: string } }>({});
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [story, setStory] = useState<string | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
 
   // Fetch words from Supabase database
   useEffect(() => {
@@ -102,6 +104,7 @@ export default function SuccessPage() {
     const data = await response.json();
     if (data?.story) {
       setGeneratedStory(data.story);
+      setStory(data.story);
       applyHighlighting(data.story);
       await generateImageFromStory(data.story);
     } else {
@@ -164,6 +167,40 @@ export default function SuccessPage() {
     fetchDefinition();
   }, [hoveredWord]);
 
+
+  // this function converts the text to speech
+  const handleConvertToSpeech = async () => {
+
+      if (!story) return alert("Generate a story first!");
+
+      try {
+        const response = await fetch("/api/generate-full-audio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: story }),
+        });
+    
+        if (!response.ok) {
+          console.error("Error fetching audio:", response.statusText);
+          return alert("Failed to generate audio.");
+        }
+    
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioSrc(audioUrl); 
+
+        console.log("Audio generated:", audioUrl);
+      }
+      
+      catch (error) {
+        console.error("Error in TTS request:", error);
+      }
+    
+
+  };
+
+  
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -214,9 +251,20 @@ export default function SuccessPage() {
               <Button variant="outline" className="mb-4 border-purple-500" onClick={handleGenerateStory}>
                 + Generate Story
               </Button>
-              <Button variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600">
-                Audio
-              </Button>
+
+              {generatedStory && (
+                <Button variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600" onClick={handleConvertToSpeech}>
+                  Read Aloud
+                </Button>
+              )}
+
+              
+              {audioSrc && (
+                <audio key={audioSrc} controls autoPlay className="mt-0">
+                <source src={audioSrc} type="audio/mpeg" />
+                  Your browser does not support the audio element.
+              </audio>
+            )}
             </div>
 
             {/* Story Output */}
