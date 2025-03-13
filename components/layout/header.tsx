@@ -1,8 +1,18 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import  { PracticeTab } from "./PracticeTab"
 
 export function Header() {
+  const [showTab, setShowTab] = useState(false);
+  const handleToggle = () => {
+    setShowTab((prev) => !prev);
+  };
+  const handleClose = () => {
+    setShowTab(false);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-screen-xl mx-auto px-6 flex h-[72px] items-center justify-between">
@@ -12,6 +22,17 @@ export function Header() {
           </Link>
         </div>
         <div className="flex-1 flex items-center justify-end gap-4">
+        
+        <div className="relative">
+            <Button
+              className="bg-[#FF9147] text-white hover:bg-[#E67E33]"
+              onClick={handleToggle}
+            >
+              Practice
+            </Button>
+            {showTab && <PracticeTab onClose={handleClose} />} {}
+          </div>
+          
           <Link href="/vocab">
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]">
               Vocab
