@@ -17,7 +17,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-screen-xl mx-auto px-6 flex h-[72px] items-center justify-between">
         <div className="flex-1 flex items-center">
-          <Link href="/" className="flex items-center">
+          <Link href="/spanish" className="flex items-center">
             <span className="text-3xl font-semibold">Vocora</span>
           </Link>
         </div>
@@ -28,7 +28,7 @@ export function Header() {
               className="bg-[#FF9147] text-white hover:bg-[#E67E33]"
               onClick={handleToggle}
             >
-              Practice
+              Practicar
             </Button>
             {showTab && <PracticeTab onClose={handleClose} />} {}
           </div>
@@ -39,10 +39,10 @@ export function Header() {
             </Button>
           </Link>
           <Link href="/settings" className="mr-4">
-            <span className="text-sm hover:text-gray-600">Settings</span>
+            <span className="text-sm hover:text-gray-600">Configuracion</span>
           </Link>
           <Link href="/">
-            <span className="text-sm text-red-600 hover:text-red-700">Log out</span>
+            <span className="text-sm text-red-600 hover:text-red-700">Cerrar sesión</span>
           </Link>
         </div>
       </div>
