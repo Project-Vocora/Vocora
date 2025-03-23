@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         prompt: `Draw me an image MidJourney style for this story: ${story}`,
         width: 1024,
         height: 1024,
-        steps: 15,
+        steps: 20,
       }),
     });
   
