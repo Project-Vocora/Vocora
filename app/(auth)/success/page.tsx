@@ -127,10 +127,14 @@ export default function SuccessPage() {
         body: JSON.stringify({ story }),
       });
 
-      const data = await response.json();
-      if (data?.imageUrl) {
-        setImageUrl(data.imageUrl);
-      }
+      // Convert response to Blob
+      const blob = await response.blob();
+
+      // Convert Blob to Object URL
+      const imageObjectURL = URL.createObjectURL(blob);
+      console.log("Generated Image URL:", imageObjectURL);
+  
+      setImageUrl(imageObjectURL);
     } catch (error) {
       console.error("Error generating image:", error);
     } finally {
