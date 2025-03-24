@@ -1,3 +1,6 @@
+import nextI18NextConfig from './next-i18next.config.js'; // Use default import for CommonJS
+const { i18n } = nextI18NextConfig;
+
 let userConfig = undefined
 try {
   userConfig = await import('./v0-user-next.config')
@@ -21,6 +24,7 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  i18n,
 }
 
 mergeConfig(nextConfig, userConfig)
