@@ -35,6 +35,7 @@ function LoginForm({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [language, setLanguage] = useState("en");
   const router = useRouter()
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -64,7 +65,7 @@ export default function LoginPage() {
       
       // Navigate to the success page
       console.log("Authentication successful.", data);
-      router.push("/success")
+      router.push(`/${language.toLowerCase()}/success`);
     } catch (error) {
       console.error("Error during form submission:", error)
       setError(error instanceof Error ? error.message : "An unexpected error occurred")
@@ -79,7 +80,7 @@ export default function LoginPage() {
     setError(null);
     
     // Redirect URL for OAuth
-    const redirectURL = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URL;
+    const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/${language.toLowerCase()}/success`;
 
     // Initiates sign-in process w/ Google using Supabase authentication
     const { error } = await supabase.auth.signInWithOAuth({
@@ -119,7 +120,7 @@ export default function LoginPage() {
               <Icons.google className="mr-2 h-4 w-4" />
               Sign in with Google
             </Button>
-            <Button variant="link" className="w-full" onClick={() => router.push('/signup')}>
+            <Button variant="link" className="w-full" onClick={() => router.push('/en/signup')}>
               Don't have an account? Sign up
             </Button>
           </CardFooter>

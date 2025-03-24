@@ -13,19 +13,22 @@ import {SetStateAction, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export function Navbar() {
-  const [language, setLanguage] = useState("English")
+  const [language, setLanguage] = useState("en")
   const router = useRouter()
 
   const handleLanguageChange = (lang: SetStateAction<string>) => {
     setLanguage(lang)
     if (lang == "Spanish") {
-      router.push("/spanish")
+      router.push("/es")
     }
     else if (lang == "Mandarin") {
       router.push("/mandarin")
     }
     //would add the rest of the languages here later
   }
+  const loginUrl = `/${language.toLowerCase()}/login`;
+  const signupUrl = `/${language.toLowerCase()}/signup`;
+
   return (
     <nav className="w-full bg-[#9747FF] px-6 py-4">
       <div className="max-w-screen-xl mx-auto flex items-center justify-between">
@@ -37,12 +40,12 @@ export function Navbar() {
           </Link>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login">
+          <Link href={loginUrl}>
             <Button variant="ghost" className="text-white hover:bg-[#9747FF]/90 hover:text-white">
               Log In
             </Button>
           </Link>
-          <Link href="/signup">
+          <Link href={signupUrl}>
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]">
               Sign Up
             </Button>

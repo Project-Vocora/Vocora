@@ -35,6 +35,7 @@ function LoginForm({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [language, setLanguage] = useState("es");
   const router = useRouter()
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -64,7 +65,7 @@ export default function LoginPage() {
 
       // Navigate to the success page
       console.log("Autenticación exitosa.", data);
-      router.push("/spanish/success")
+      router.push("/es/success")
     } catch (error) {
       console.error("Error durante la presentación del formulario:", error)
       setError(error instanceof Error ? error.message : "Ocurrió un error inesperado")
@@ -78,14 +79,21 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
+    // Set spanish to es-419 Latin America Spanish for Google OAuth
+    const googleLang = language === "es" ? "es-419" : language;
+
     // Redirect URL for OAuth
-    const redirectURL = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URL;
+    const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/${language.toLowerCase()}/success`;
 
     // Initiates sign-in process w/ Google using Supabase authentication
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: redirectURL,
+        queryParams: {
+          // Changes the Google OAuth login screen language
+          hl: googleLang,
+        },
       },
     });
 
@@ -118,7 +126,7 @@ export default function LoginPage() {
               <Icons.google className="mr-2 h-4 w-4" />
               Iniciar sesión con Google
             </Button>
-            <Button variant="link" className="w-full" onClick={() => router.push('/spanish/auth/signup')}>
+            <Button variant="link" className="w-full" onClick={() => router.push('/es/auth/signup')}>
               Crear cuenta nueva
             </Button>
           </CardFooter>

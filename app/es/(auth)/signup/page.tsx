@@ -43,6 +43,7 @@ function SignUpForm({
 export default function SignUpPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [language, setLanguage] = useState("es");
     const router = useRouter()
   
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -72,7 +73,7 @@ export default function SignUpPage() {
         if (signUpError) throw new Error(signUpError.message)
         
         console.log("Sign-up successful.", signUpData)
-        router.push("/spanish/success")
+        router.push("/es/success")
     } catch (error) {
         setError(error instanceof Error ? error.message : "An unexpected error occurred")
     } finally {
@@ -86,7 +87,7 @@ async function handleGoogleSignUp() {
   setError(null);
   
   // Redirect URL for OAuth
-  const redirectURL = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URL;
+  const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/${language.toLowerCase()}/success`;
 
   // Initiates sign-up process w/ Google using Supabase authentication
   const { error } = await supabase.auth.signInWithOAuth({
@@ -127,7 +128,7 @@ return (
               <Icons.google className="mr-2 h-4 w-4" />
               Registrate con Google
             </Button>
-            <Button variant="link" className="w-full" onClick={() => router.push('/spanish/login')}>
+            <Button variant="link" className="w-full" onClick={() => router.push('/es/login')}>
             ¿Ya tienes una cuenta?
             </Button>
           </CardFooter>

@@ -22,7 +22,7 @@ export default function SpanishHomePage() {
               Usando tecnología de IA de vanguardia para ayudar a impulsar su viaje de aprendizaje de idiomas al siguiente nivel.
             </h1>
             <div className="mt-8">
-              <Link href="/spanish/login">
+              <Link href="/es/login">
                 <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE] px-8 py-6 text-lg">
                   Comencemos
                 </Button>

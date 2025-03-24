@@ -20,7 +20,7 @@ export function SpanishNavbar() {
   const handleLanguageChange = (lang: SetStateAction<string>) => {
     setLanguage(lang);
     if (lang === "Español") {
-      router.push("/spanish"); // Navigate to the Spanish page
+      router.push("/es"); // Navigate to the Spanish page
     } else if (lang === "English") {
       router.push("/"); // Redirect to the English home page
     } else if (lang === "Mandarin") {
@@ -37,12 +37,12 @@ export function SpanishNavbar() {
           </Link>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/spanish/login">
+          <Link href="/es/login">
             <Button variant="ghost" className="text-white hover:bg-[#9747FF]/90 hover:text-white">
               Iniciar Sesión
             </Button>
           </Link>
-          <Link href="/spanish/signup">
+          <Link href="/es/signup">
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]">
               Registrarse
             </Button>
