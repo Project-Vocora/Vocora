@@ -94,7 +94,7 @@ export default function LoginPage() {
       console.error("Google OAuth Error:", error.message);
       setError(error.message);
     }
-
+    router.push(`/${language}/success`);
     // Reset loading state
     setIsLoading(false);
   }

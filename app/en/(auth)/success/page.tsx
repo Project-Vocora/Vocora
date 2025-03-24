@@ -28,7 +28,7 @@ export default function SuccessPage() {
 
       const userId = data.user?.id;
       const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
-      const selectedLanguage = localStorage.getItem("language") || "en"; 
+      const selectedLanguage = "en"; 
       
       const { data: wordsData, error } = await supabase.from("messages").select("text").in("uid", [userId, sharedUserId]).eq("language", selectedLanguage);
       if (error) {

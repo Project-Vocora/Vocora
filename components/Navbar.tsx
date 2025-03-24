@@ -18,11 +18,11 @@ export function Navbar() {
 
   const handleLanguageChange = (lang: SetStateAction<string>) => {
     setLanguage(lang)
-    if (lang == "Spanish") {
+    if (lang == "es") {
       router.push("/es")
     }
-    else if (lang == "Mandarin") {
-      router.push("/mandarin")
+    else if (lang == "zh") {
+      alert("中文页面即将推出！(Mandarin page is coming soon!)");
     }
     //would add the rest of the languages here later
   }
@@ -52,13 +52,13 @@ export function Navbar() {
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="bg-white text-black gap-2"> {language} <ChevronDown className="h-4 w-4" />
+              <Button variant="outline" className="bg-white text-black gap-2"> {language === "en" ? "English" : language === "es" ? "Español" : "中文"} <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleLanguageChange("English")}>English</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleLanguageChange("Spanish")}>Spanish</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleLanguageChange("Mandarin")}>中文</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLanguageChange("en")}>English</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLanguageChange("es")}>Español</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLanguageChange("zh")}>中文</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
