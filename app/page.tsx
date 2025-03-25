@@ -22,7 +22,7 @@ export default function HomePage() {
               Using cutting-edge AI technology to help push your language learning journey to the next level.
             </h1>
             <div className="mt-8">
-              <Link href="/login">
+              <Link href="/en/login">
                 <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE] px-8 py-6 text-lg">
                   Let's Get Started
                 </Button>

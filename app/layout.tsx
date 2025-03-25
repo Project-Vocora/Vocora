@@ -13,6 +13,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Load the Google API script */}
+        <script async defer src="https://apis.google.com/js/platform.js"></script>
+      </head>
       <body>{children}</body>
     </html>
   )

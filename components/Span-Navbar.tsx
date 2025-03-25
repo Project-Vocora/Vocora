@@ -14,17 +14,17 @@ import { SetStateAction, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function SpanishNavbar() {
-  const [language, setLanguage] = useState("Español");
+  const [language, setLanguage] = useState("es");
   const router = useRouter();
 
   const handleLanguageChange = (lang: SetStateAction<string>) => {
     setLanguage(lang);
-    if (lang === "Español") {
-      router.push("/spanish"); // Navigate to the Spanish page
-    } else if (lang === "English") {
+    if (lang === "es") {
+      router.push("/es"); // Navigate to the Spanish page
+    } else if (lang === "en") {
       router.push("/"); // Redirect to the English home page
-    } else if (lang === "Mandarin") {
-      router.push("/mandarin-page"); // Adjust as necessary
+    } else if (lang === "zh") {
+      alert("中文页面即将推出！(Mandarin page is coming soon!)");
     }
   };
 
@@ -37,12 +37,12 @@ export function SpanishNavbar() {
           </Link>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/spanish/login">
+          <Link href="/es/login">
             <Button variant="ghost" className="text-white hover:bg-[#9747FF]/90 hover:text-white">
               Iniciar Sesión
             </Button>
           </Link>
-          <Link href="/spanish/signup">
+          <Link href="/es/signup">
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]">
               Registrarse
             </Button>
@@ -50,13 +50,13 @@ export function SpanishNavbar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="bg-white text-black gap-2">
-                {language} <ChevronDown className="h-4 w-4" />
+              {language === "en" ? "English" : language === "es" ? "Español" : "中文"} <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleLanguageChange("Español")}>Español</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleLanguageChange("English")}>English</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleLanguageChange("Mandarin")}>中文</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLanguageChange("es")}>Español</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLanguageChange("en")}>English</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLanguageChange("zh")}>中文</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
