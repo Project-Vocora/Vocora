@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,6 +17,8 @@ export default function SuccessPage() {
   const [definitions, setDefinitions] = useState<{ [key: string]: { definition: string; partOfSpeech: string } }>({});
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [story, setStory] = useState<string | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
 
   // Fetch words from Supabase database
   useEffect(() => {
@@ -26,8 +29,8 @@ export default function SuccessPage() {
 
       const userId = data.user?.id;
       const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
-      const selectedLanguage = localStorage.getItem("language") || "es"; 
-
+      const selectedLanguage = "en"; 
+      
       const { data: wordsData, error } = await supabase.from("messages").select("text").in("uid", [userId, sharedUserId]).eq("language", selectedLanguage);
       if (error) {
         console.error("Error fetching words:", error);
@@ -63,7 +66,7 @@ export default function SuccessPage() {
     const selectedLanguage = localStorage.getItem("language") || "es";
 
     const { error } = await supabase.from("messages").insert([
-      { text: newWord, uid: user.id, language: selectedLanguage  }
+      { text: newWord, uid: user.id, language: selectedLanguage }
     ]);
     if (error) {
       console.error("Error adding new word:", error);
@@ -115,6 +118,7 @@ export default function SuccessPage() {
     const data = await response.json();
     if (data?.story) {
       setGeneratedStory(data.story);
+      setStory(data.story);
       applyHighlighting(data.story);
       await generateImageFromStory(data.story);
     } else {
@@ -132,10 +136,14 @@ export default function SuccessPage() {
         body: JSON.stringify({ story }),
       });
 
-      const data = await response.json();
-      if (data?.imageUrl) {
-        setImageUrl(data.imageUrl);
-      }
+      // Convert response to Blob
+      const blob = await response.blob();
+
+      // Convert Blob to Object URL
+      const imageObjectURL = URL.createObjectURL(blob);
+      console.log("Generated Image URL:", imageObjectURL);
+  
+      setImageUrl(imageObjectURL);
     } catch (error) {
       console.error("Error generating image:", error);
     } finally {
@@ -149,7 +157,7 @@ export default function SuccessPage() {
 
     const fetchDefinition = async () => {
       try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${hoveredWord.word}`);
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/es/${hoveredWord.word}`);
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
           setDefinitions((prev) => ({
@@ -176,6 +184,40 @@ export default function SuccessPage() {
 
     fetchDefinition();
   }, [hoveredWord]);
+
+
+  // this function converts the text to speech
+  const handleConvertToSpeech = async () => {
+
+      if (!story) return alert("Generate a story first!");
+
+      try {
+        const response = await fetch("/api/generate-full-audio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: story }),
+        });
+    
+        if (!response.ok) {
+          console.error("Error fetching audio:", response.statusText);
+          return alert("Failed to generate audio.");
+        }
+    
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioSrc(audioUrl); 
+
+        console.log("Audio generated:", audioUrl);
+      }
+      
+      catch (error) {
+        console.error("Error in TTS request:", error);
+      }
+    
+
+  };
+
+  
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -227,9 +269,20 @@ export default function SuccessPage() {
               <Button variant="outline" className="mb-4 border-purple-500" onClick={handleGenerateStory}>
                 + Generate Story
               </Button>
-              <Button variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600">
-                Audio
-              </Button>
+
+              {generatedStory && (
+                <Button variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600" onClick={handleConvertToSpeech}>
+                  Read Aloud
+                </Button>
+              )}
+
+              
+              {audioSrc && (
+                <audio key={audioSrc} controls autoPlay className="mt-0">
+                <source src={audioSrc} type="audio/mpeg" />
+                  Your browser does not support the audio element.
+              </audio>
+            )}
             </div>
 
             {/* Story Output */}

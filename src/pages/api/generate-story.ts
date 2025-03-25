@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         messages: [
           { role: "user",
             content: `Write a single, unique, four-sentence story using elementary-level words and this list: ${words.join(", ")}. 
-            Each time the request is made, ensure the story is different by varying the setting, characters, or conflict.`
+            Each time the request is made, ensure the story is different by varying the setting, characters, or conflict. if the words are in spanish, make the story in beginner latinamerican spanish.`
           }
         ],
     });
