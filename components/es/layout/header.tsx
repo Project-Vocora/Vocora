@@ -64,12 +64,11 @@ export function Header() {
             </Button>
             {showPractice && <PracticeTab onClose={togglePractice} />} {}
           </div>
-          
-          <Link href="/vocab">
-            <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]">
+          {/* Temporarily removed Vocab button */}
+            <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"onClick={() => alert('Vocab page coming soon!')}>
               Vocab
             </Button>
-          </Link>
+
             {/* Settings Button */}
             <div className="relative">
               <button
