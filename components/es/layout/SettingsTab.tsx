@@ -8,7 +8,7 @@ interface SettingsTabProps {
 
 export const SettingsTab: React.FC<SettingsTabProps> = ({ onClose }) => {
   const tabRef = useRef<HTMLDivElement | null>(null);
-  const language = "en";
+  const language = "es";
 
   // Close if user clicks outside the tab
   useEffect(() => {

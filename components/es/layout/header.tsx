@@ -5,16 +5,16 @@ import { useState } from "react"
 import  { PracticeTab } from "./PracticeTab"
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { SettingsTab } from "./SettingsTab"
 
 export function Header() {
-  const [showTab, setShowTab] = useState(false);
+  const [showPractice, setShowPractice] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const router = useRouter();
-  const handleToggle = () => {
-    setShowTab((prev) => !prev);
-  };
-  const handleClose = () => {
-    setShowTab(false);
-  };
+
+  // Toggle functions
+  const togglePractice = () => setShowPractice((prev) => !prev);
+  const toggleSettings = () => setShowSettings((prev) => !prev);
 
   const clearGoogleCookies = () => {
     // Clear Google OAuth cookies
@@ -58,11 +58,11 @@ export function Header() {
         <div className="relative">
             <Button
               className="bg-[#FF9147] text-white hover:bg-[#E67E33]"
-              onClick={handleToggle}
+              onClick={togglePractice}
             >
               Practicar
             </Button>
-            {showTab && <PracticeTab onClose={handleClose} />} {}
+            {showPractice && <PracticeTab onClose={togglePractice} />} {}
           </div>
           
           <Link href="/vocab">
@@ -70,9 +70,16 @@ export function Header() {
               Vocab
             </Button>
           </Link>
-          <Link href="/settings" className="mr-4">
-            <span className="text-sm hover:text-gray-600">Configuracion</span>
-          </Link>
+            {/* Settings Button */}
+            <div className="relative">
+              <button
+                className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300"
+                onClick={toggleSettings}
+              >
+                <Image src="/gear_icon.png" alt="Settings" width={24} height={24} />
+              </button>
+              {showSettings && <SettingsTab onClose={() => setShowSettings(false)} />}
+            </div>
           <Link href="/">
             <span className="text-sm text-red-600 hover:text-red-700"onClick={handleLogout}>Cerrar sesión</span>
           </Link>
