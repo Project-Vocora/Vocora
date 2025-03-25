@@ -20,7 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const completion = await openai.chat.completions.create({
         model: "o1-mini-2024-09-12",
         messages: [
-          { role: "user", content: `Write a short, four-sentence story using elementary level words along with this list: ${words.join(", ")}` }
+          { role: "user",
+            content: `Write a single, unique, four-sentence story using elementary-level words and this list: ${words.join(", ")}. 
+            Each time the request is made, ensure the story is different by varying the setting, characters, or conflict. if the words are in spanish, make the story in beginner latinamerican spanish.`
+          }
         ],
     });
       

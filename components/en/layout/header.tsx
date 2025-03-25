@@ -3,14 +3,25 @@ import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import  { PracticeTab } from "./PracticeTab"
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const [showTab, setShowTab] = useState(false);
+  const router = useRouter();
   const handleToggle = () => {
     setShowTab((prev) => !prev);
   };
   const handleClose = () => {
     setShowTab(false);
+  };
+
+  const handleLogout = async () => {
+    // Log the user out using Supabase
+    await supabase.auth.signOut();
+    
+    // Redirect the user back to the homepage w/ its appropriate language
+    router.push(`/`);
   };
 
   return (
@@ -42,7 +53,7 @@ export function Header() {
             <span className="text-sm hover:text-gray-600">Settings</span>
           </Link>
           <Link href="/">
-            <span className="text-sm text-red-600 hover:text-red-700">Log out</span>
+            <span className="text-sm text-red-600 hover:text-red-700" onClick={handleLogout}>Log out</span>
           </Link>
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Header } from "@/components/layout/header";
+import { Header } from "@/components/en/layout/header";
 import { supabase } from "@/lib/supabase";
 
 export default function SuccessPage() {
@@ -21,13 +21,16 @@ export default function SuccessPage() {
 
   // Fetch words from Supabase database
   useEffect(() => {
+    localStorage.setItem("language", "en");
+    
     const fetchWords = async () => {
       const { data, error: userError } = await supabase.auth.getUser();
 
       const userId = data.user?.id;
       const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
+      const selectedLanguage = "en"; 
       
-      const { data: wordsData, error } = await supabase.from("messages").select("text").in("uid", [userId, sharedUserId]);;
+      const { data: wordsData, error } = await supabase.from("messages").select("text").in("uid", [userId, sharedUserId]).eq("language", selectedLanguage);
       if (error) {
         console.error("Error fetching words:", error);
       } else {
@@ -58,8 +61,11 @@ export default function SuccessPage() {
       console.error("Error adding new word:", userError);
       return;
     }
+
+    const selectedLanguage = localStorage.getItem("language") || "en";
+
     const { error } = await supabase.from("messages").insert([
-      { text: newWord, uid: user.id }
+      { text: newWord, uid: user.id, language: selectedLanguage }
     ]);
     if (error) {
       console.error("Error adding new word:", error);
@@ -73,9 +79,11 @@ export default function SuccessPage() {
   const handleAddHoveredWord = async () => {
     if (!hoveredWord?.word) return;
 
+    const selectedLanguage = localStorage.getItem("language") || "en";
+
     // Add the word to the database if it's not already present
     if (!words.includes(hoveredWord.word)) {
-      const { error } = await supabase.from("messages").insert([{ text: hoveredWord.word }]);
+      const { error } = await supabase.from("messages").insert([{ text: hoveredWord.word, language: selectedLanguage }]);
       if (error) {
         console.error("Error adding hovered word:", error);
       } else {
@@ -127,10 +135,14 @@ export default function SuccessPage() {
         body: JSON.stringify({ story }),
       });
 
-      const data = await response.json();
-      if (data?.imageUrl) {
-        setImageUrl(data.imageUrl);
-      }
+      // Convert response to Blob
+      const blob = await response.blob();
+
+      // Convert Blob to Object URL
+      const imageObjectURL = URL.createObjectURL(blob);
+      console.log("Generated Image URL:", imageObjectURL);
+  
+      setImageUrl(imageObjectURL);
     } catch (error) {
       console.error("Error generating image:", error);
     } finally {

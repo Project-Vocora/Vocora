@@ -25,7 +25,7 @@ export default function HomePage() {
               {t("hero_text")}
             </h1>
             <div className="mt-8">
-              <Link href="/login">
+              <Link href="/en/login">
                 <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE] px-8 py-6 text-lg">
                 {t("get_started")}
                 </Button>
