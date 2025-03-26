@@ -48,6 +48,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
     }
   };
 
+  /*
   useEffect(() => {
     if (!hoveredWord || definitions[hoveredWord.word]) return;
 
@@ -81,6 +82,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
     fetchDefinition();
   }, [hoveredWord]);
 
+    */
   return (
     <div
       className="absolute top-16 left-1/2 transform -translate-x-1/2 w-[500px] max-h-[80vh] p-4 bg-white shadow-lg rounded-md overflow-visible"
@@ -133,6 +135,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
                   onMouseLeave={() => setHoveredWord(null)}
                 >
                   {word}
+                  {/*
                   {hoveredWord && hoveredWord.word === cleanWord && hoveredWord.index === index && definitions[cleanWord] && (
                     <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm overflow-visible">
                       <span className="font-bold text-black">{cleanWord}</span>
@@ -142,6 +145,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
                       <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-gray-100 rotate-45 border border-gray-300"></div>
                     </div>
                   )}
+                  */}
                 </span>
               ) : (
                 word

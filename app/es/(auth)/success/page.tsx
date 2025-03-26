@@ -152,6 +152,7 @@ export default function SuccessPage() {
   };
 
   // This function fetches the definition of a word
+  /*
   useEffect(() => {
     if (!hoveredWord || definitions[hoveredWord.word]) return;
 
@@ -185,7 +186,7 @@ export default function SuccessPage() {
     fetchDefinition();
   }, [hoveredWord]);
 
-
+  */
   // this function converts the text to speech
   const handleConvertToSpeech = async () => {
 
@@ -285,7 +286,7 @@ export default function SuccessPage() {
 
             {/* Story Output */}
             <div className="bg-gray-50 rounded-lg p-6 mt-4">
-              <p className="text-gray-600 relative text-2xl">
+              <div className="text-gray-600 relative text-2xl">
                 {generatedStory.split(/\b/).map((word, index) => {
                   const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
 
@@ -297,11 +298,12 @@ export default function SuccessPage() {
                       onMouseLeave={() => setHoveredWord(null)}
                     >
                       {word}
+                      {/*
                       {hoveredWord && hoveredWord.word === cleanWord && hoveredWord.index === index && definitions[cleanWord] && (
                         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm">
-                          <span className="font-bold text-black">{cleanWord}</span>
-                          <span className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</span>
-                          <span className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</span>
+                          <div className="font-bold text-black">{cleanWord}</div>
+                          <div className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</div>
+                          <div className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</div>
 
                           <button className="mt-2 w-full bg-purple-500 text-white py-1 px-2 rounded text-xs flex items-center justify-center hover:bg-purple-600" onClick={handleAddHoveredWord}>
                             Add to List +
@@ -310,12 +312,13 @@ export default function SuccessPage() {
                           <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-gray-100 rotate-45 border border-gray-300"></div>
                         </div>
                       )}
+                      */}
                     </span>
                   ) : (
                     word
                   );
                 })}
-              </p>
+              </div>
             </div>
           </div>
         </div>

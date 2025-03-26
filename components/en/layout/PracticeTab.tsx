@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
 
 interface PracticeTabProps {
   onClose: () => void;
@@ -39,48 +38,44 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
     }
   };
 
-  const handleAddHoveredWord = async () => {
-    if (!hoveredWord?.word || words.includes(hoveredWord.word)) return;
+  const fetchDefinition = async (word: string) => {
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_MERRIAM_API_KEY_LEARNERS;
+      const response = await fetch(`https://www.dictionaryapi.com/api/v3/references/learners/json/${word}?key=${apiKey}`);
+      const data = await response.json();
 
-    const { error } = await supabase.from("messages").insert([{ text: hoveredWord.word }]);
-    if (error) {
-      console.error("Error adding hovered word:", error);
+      if (Array.isArray(data) && data.length > 0) {
+        const wordData = data[0];
+        const definition = wordData.shortdef;
+
+        setDefinitions((prev) => ({
+          ...prev,
+          [word]: {
+            definition: definition,
+            partOfSpeech: wordData.fl,
+          },
+        }));
+      } else {
+        setDefinitions((prev) => ({
+          ...prev,
+          [word]: { definition: "", partOfSpeech: "unknown" },
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching definition:", error);
+      setDefinitions((prev) => ({
+        ...prev,
+        [word]: { definition: "Error fetching definition.", partOfSpeech: "unknown" },
+      }));
     }
   };
 
   useEffect(() => {
     if (!hoveredWord || definitions[hoveredWord.word]) return;
 
-    const fetchDefinition = async () => {
-      try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${hoveredWord.word}`);
-        const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setDefinitions((prev) => ({
-            ...prev,
-            [hoveredWord.word]: {
-              definition: data[0].meanings[0].definitions[0].definition,
-              partOfSpeech: data[0].meanings[0].partOfSpeech,
-            },
-          }));
-        } else {
-          setDefinitions((prev) => ({
-            ...prev,
-            [hoveredWord.word]: { definition: "Definition not found.", partOfSpeech: "unknown" },
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching definition:", error);
-        setDefinitions((prev) => ({
-          ...prev,
-          [hoveredWord.word]: { definition: "Error fetching definition.", partOfSpeech: "unknown" },
-        }));
-      }
-    };
-
-    fetchDefinition();
-  }, [hoveredWord]);
-
+    // Fetch definition only for the hovered word
+    fetchDefinition(hoveredWord.word);
+  }, [hoveredWord, definitions]);
   return (
     <div
       className="absolute top-16 left-1/2 transform -translate-x-1/2 w-[500px] max-h-[80vh] p-4 bg-white shadow-lg rounded-md overflow-visible"
@@ -135,9 +130,9 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
                   {word}
                   {hoveredWord && hoveredWord.word === cleanWord && hoveredWord.index === index && definitions[cleanWord] && (
                     <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm overflow-visible">
-                      <span className="font-bold text-black">{cleanWord}</span>
-                      <span className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</span>
-                      <span className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</span>
+                      <div className="font-bold text-black">{cleanWord}</div>
+                      <div className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</div>
+                      <div className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</div>
 
                       <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-gray-100 rotate-45 border border-gray-300"></div>
                     </div>
