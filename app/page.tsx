@@ -1,9 +1,15 @@
-import { Navbar } from "@/components/Navbar"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import Image from "next/image"
+"use client";
+
+import { Navbar } from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
+import homeTranslations from "@/lang/app-page_tr"; // Ensure this is set up correctly
+import { useLanguage } from "@/lang/LanguageContext"; // Use the Language context
 
 export default function HomePage() {
+  const { language } = useLanguage(); // Get the current language from context
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -19,12 +25,12 @@ export default function HomePage() {
           />
           <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start">
             <h1 className="text-3xl font-medium max-w-[500px]">
-              Using cutting-edge AI technology to help push your language learning journey to the next level.
+              {homeTranslations[language as keyof typeof homeTranslations].heading} {/* Access heading dynamically */}
             </h1>
             <div className="mt-8">
-              <Link href="/en/login">
+              <Link href={`/login`}> {/* Update the login URL dynamically */}
                 <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE] px-8 py-6 text-lg">
-                  Let's Get Started
+                  {homeTranslations[language as keyof typeof homeTranslations].buttonText} {/* Access button text dynamically */}
                 </Button>
               </Link>
             </div>
@@ -32,6 +38,5 @@ export default function HomePage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-

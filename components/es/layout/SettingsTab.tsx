@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings_tr } from "../../../lang/translations"; 
+import { Settings_tr } from "../../../lang/Set_translations"; 
 
 interface SettingsTabProps {
   onClose: () => void;
