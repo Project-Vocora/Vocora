@@ -7,7 +7,11 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { SettingsTab } from "./SettingsTab"
 
-export function Header() {
+interface HeaderProps {
+  words: string[];
+}
+
+export function Header({ words }: HeaderProps) {
   const [showPractice, setShowPractice] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const router = useRouter();
@@ -38,7 +42,7 @@ export function Header() {
             >
               Practicar
             </Button>
-            {showPractice && <PracticeTab onClose={togglePractice} />} {}
+            {showPractice && <PracticeTab onClose={() => setShowPractice(false)} words={words}/>}
           </div>
           {/* Temporarily removed Vocab button */}
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"onClick={() => alert('Vocab page coming soon!')}>

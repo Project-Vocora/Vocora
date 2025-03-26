@@ -4,28 +4,14 @@ import { supabase } from "@/lib/supabase";
 
 interface PracticeTabProps {
   onClose: () => void;
+  words: string[];
 }
 
-export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
-  const [words, setWords] = useState<string[]>([]);
+export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
   const [loading, setLoading] = useState(false);
   const [story, setStory] = useState("");
   const [hoveredWord, setHoveredWord] = useState<{ word: string; index: number } | null>(null);
   const [definitions, setDefinitions] = useState<{ [key: string]: { definition: string; partOfSpeech: string } }>({});
-
-  useEffect(() => {
-    const fetchWords = async () => {
-      const { data, error } = await supabase.from("messages").select("text");
-
-      if (error) {
-        console.error("Error fetching words:", error);
-      } else {
-        setWords(data.map((row) => row.text));
-      }
-    };
-
-    fetchWords();
-  }, []);
 
   const handlePracticeAllWords = async () => {
     if (words.length === 0) return alert("No words available to practice.");
@@ -59,8 +45,6 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
     const { error } = await supabase.from("messages").insert([{ text: hoveredWord.word }]);
     if (error) {
       console.error("Error adding hovered word:", error);
-    } else {
-      setWords([...words, hoveredWord.word]);
     }
   };
 
@@ -135,7 +119,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
       {story && (
         <div className="mt-4">
           <h3 className="text-md font-semibold">Generated Story:</h3>
-          <p className="text-gray-700 relative text-lg leading-6">
+          <span className="text-gray-700 relative text-lg leading-6">
             {story.split(/\b/).map((word, index) => {
               const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
 
@@ -151,9 +135,9 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
                   {word}
                   {hoveredWord && hoveredWord.word === cleanWord && hoveredWord.index === index && definitions[cleanWord] && (
                     <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm overflow-visible">
-                      <p className="font-bold text-black">{cleanWord}</p>
-                      <p className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</p>
-                      <p className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</p>
+                      <span className="font-bold text-black">{cleanWord}</span>
+                      <span className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</span>
+                      <span className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</span>
 
                       <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-gray-100 rotate-45 border border-gray-300"></div>
                     </div>
@@ -163,7 +147,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
                 word
               );
             })}
-          </p>
+          </span>
         </div>
       )}
 

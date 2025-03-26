@@ -216,11 +216,9 @@ export default function SuccessPage() {
 
   };
 
-  
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+      <Header words={words} />
       <main className="flex-1 flex justify-between p-6 max-w-6xl mx-auto w-full gap-8">
         {/* Left-Aligned Content */}
         <div className="flex flex-col items-start justify-center w-1/2 space-y-8">
@@ -300,9 +298,9 @@ export default function SuccessPage() {
                       {word}
                       {hoveredWord && hoveredWord.word === cleanWord && hoveredWord.index === index && definitions[cleanWord] && (
                         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm">
-                          <p className="font-bold text-black">{cleanWord}</p>
-                          <p className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</p>
-                          <p className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</p>
+                          <span className="font-bold text-black">{cleanWord}</span>
+                          <span className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</span>
+                          <span className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</span>
 
                           <button className="mt-2 w-full bg-purple-500 text-white py-1 px-2 rounded text-xs flex items-center justify-center hover:bg-purple-600" onClick={handleAddHoveredWord}>
                             Add to List +
