@@ -98,7 +98,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      console.error("Error de OAuth de Google:", error.message);
+      console.error("Spanish Google OAuth Error: ", error.message);
       setError(error.message);
     }
 
