@@ -45,7 +45,7 @@ export function Header({ words }: HeaderProps) {
             {showPractice && <PracticeTab onClose={() => setShowPractice(false)} words={words}/>}
           </div>
           {/* Temporarily removed Vocab button */}
-            <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"onClick={() => alert('Vocab page coming soon!')}>
+            <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"onClick={() => alert('Página de Vocabulario próximamente!')}>
               Vocab
             </Button>
 

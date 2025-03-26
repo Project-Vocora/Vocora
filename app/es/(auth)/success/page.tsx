@@ -107,7 +107,7 @@ export default function SuccessPage() {
 
   // This function handles word selection and triggers story generation
   const handleGenerateStory = async () => {
-    if (selectedWords.size === 0) return alert("Please select at least one word for the story.");
+    if (selectedWords.size === 0) return alert("Por favor, seleccione al menos una palabra para la historia.");
 
     const response = await fetch("/api/generate-story", {
       method: "POST",
@@ -224,7 +224,7 @@ export default function SuccessPage() {
       <main className="flex-1 flex justify-between p-6 max-w-6xl mx-auto w-full gap-8">
         {/* Left-Aligned Content */}
         <div className="flex flex-col items-start justify-center w-1/2 space-y-8">
-          <h2 className="text-lg font-semibold self-center w-full text-center">Vocabulary List:</h2>
+          <h2 className="text-lg font-semibold self-center w-full text-center">Lista de Vocabulario:</h2>
 
           {/* Word Input Field */}
           <div className="w-full max-w-2xl">
@@ -244,7 +244,7 @@ export default function SuccessPage() {
               className="bg-purple-500 text-white hover:bg-purple-600"
               onClick={handleAddWord}
             >
-              + Add
+              + Agregar
             </Button>
             {words.map((word, index) => (
               <Button
@@ -266,12 +266,12 @@ export default function SuccessPage() {
           <div className="w-full max-w-2xl mt-8">
             <div className="flex gap-4 justify-center">
               <Button variant="outline" className="mb-4 border-purple-500" onClick={handleGenerateStory}>
-                + Generate Story
+                + Crear Historia
               </Button>
 
               {generatedStory && (
                 <Button variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600" onClick={handleConvertToSpeech}>
-                  Read Aloud
+                  Léemelo
                 </Button>
               )}
 
@@ -279,7 +279,7 @@ export default function SuccessPage() {
               {audioSrc && (
                 <audio key={audioSrc} controls autoPlay className="mt-0">
                 <source src={audioSrc} type="audio/mpeg" />
-                  Your browser does not support the audio element.
+                Su dispositivo no soporta el elemento de audio.
               </audio>
             )}
             </div>

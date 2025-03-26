@@ -73,7 +73,8 @@ export default function SignUpPage() {
         if (signUpError) throw new Error(signUpError.message)
         
         console.log("Sign-up successful.", signUpData)
-        router.push("/en/success")
+        alert("Sign-up successful! Please verify your email to continue.");
+        router.push("/en/login")
     } catch (error) {
         setError(error instanceof Error ? error.message : "An unexpected error occurred")
     } finally {

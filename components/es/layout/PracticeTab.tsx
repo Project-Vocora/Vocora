@@ -14,7 +14,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
   const [definitions, setDefinitions] = useState<{ [key: string]: { definition: string; partOfSpeech: string } }>({});
 
   const handlePracticeAllWords = async () => {
-    if (words.length === 0) return alert("No words available to practice.");
+    if (words.length === 0) return alert("No hay palabras disponibles para practicar.");
 
     setLoading(true);
 
@@ -29,11 +29,11 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
       if (data?.story) {
         setStory(data.story);
       } else {
-        alert("Failed to generate story.");
+        alert("No se pudo generar la historia.");
       }
     } catch (error) {
       console.error("Error generating story:", error);
-      alert("An error occurred while generating the story.");
+      alert("Se ha producido un error al generar la historia.");
     } finally {
       setLoading(false);
     }
@@ -91,10 +91,10 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
         transform: `translateX(-50%)`,
       }}
     >
-      <h2 className="text-lg font-semibold mb-4">Practice Tab</h2>
+      <h2 className="text-lg font-semibold mb-4">Práctica</h2>
 
       <div className="mb-4 text-gray-700 font-roboto">
-        <h3 className="text-md font-semibold">Words:</h3>
+        <h3 className="text-md font-semibold">Palabras:</h3>
         <p>
           {words.map((word, index) => (
             <span
@@ -115,12 +115,12 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
         onClick={handlePracticeAllWords}
         disabled={loading}
       >
-        {loading ? "Generating..." : "Practice All Words"}
+        {loading ? "Generating..." : "Practicar todo"}
       </Button>
 
       {story && (
         <div className="mt-4">
-          <h3 className="text-md font-semibold">Generated Story:</h3>
+          <h3 className="text-md font-semibold">Historia generada:</h3>
           <span className="text-gray-700 relative text-lg leading-6">
             {story.split(/\b/).map((word, index) => {
               const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
@@ -156,7 +156,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose, words }) => {
       )}
 
       <Button className="mt-4" onClick={onClose}>
-        Close
+        Cerrar
       </Button>
     </div>
   );
