@@ -2,10 +2,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { PracticeTab } from "../../PracticeTab"
+import { PracticeTab } from "./PracticeTab"
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { SettingsTab } from "./SettingsTab"
+import { SettingsTab } from "./settingsTab"
 
 export function Header() {
   const [showPractice, setShowPractice] = useState(false);
@@ -38,7 +38,7 @@ export function Header() {
             >
               Practice
             </Button>
-            {showPractice && <PracticeTab onClose={() => setShowSettings(false)} />}
+            {showPractice && <PracticeTab onClose={() => setShowPractice(false)} />}
           </div>
           {/* Temporarily removed vocab button */}
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"onClick={() => alert('Vocab page coming soon!')}>

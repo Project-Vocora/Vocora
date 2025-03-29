@@ -15,19 +15,3 @@ export const Settings_tr = {
       close: "Cerrar",
     },
   };
-
-  export const Practice_tr = {
-    en: {
-      title: "Practice",
-      options: "Settings Options:",
-      description: "⚙️ Settings.",
-      close: "Close",
-    },
-    es: {
-      title: "Configuraciones",
-      options: "Opciones de configuración:",
-      description: "⚙️ Configuraciones.",
-      close: "Cerrar",
-    },
-  };
-  

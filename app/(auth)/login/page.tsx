@@ -67,7 +67,6 @@ export default function LoginPage() {
       console.error("Google OAuth Error:", error.message);
       setError(error.message);
     }
-    router.push(`/success`);
     setIsLoading(false);
   }
 
