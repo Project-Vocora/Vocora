@@ -7,16 +7,25 @@ type Language = "en" | "es" | "zh";
 
 // Create the context with the correct type
 const LanguageContext = createContext<{
-  language: Language; // Use the Language type
-  setLanguage: (lang: Language) => void; // Use the Language type
+  language: Language;
+  setLanguage: (lang: Language) => void;
 } | null>(null);
 
 // Create provider component
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("en"); // Set the initial language to 'en'
+  // Get the saved language from localStorage immediately to avoid re-render delay
+  const [language, setLanguage] = useState<Language>(() => {
+    return (localStorage.getItem("language") as Language) || "en";
+  });
+
+  // Save language to localStorage when it changes
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem("language", lang);
+  };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage }}>
+    <LanguageContext.Provider value={{ language, setLanguage: changeLanguage }}>
       {children}
     </LanguageContext.Provider>
   );
