@@ -1,4 +1,5 @@
 // translations.ts
+"use client";
 
 export const Settings_tr = {
     en: {
@@ -14,4 +15,3 @@ export const Settings_tr = {
       close: "Cerrar",
     },
   };
-  

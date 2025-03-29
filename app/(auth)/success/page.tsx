@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Header } from "@/components/es/layout/header";
+import { Header } from "@/components/header";
 import { supabase } from "@/lib/supabase";
 
 export default function SuccessPage() {
@@ -22,14 +21,14 @@ export default function SuccessPage() {
 
   // Fetch words from Supabase database
   useEffect(() => {
-    localStorage.setItem("language", "es");
+    localStorage.setItem("language", "en");
     
     const fetchWords = async () => {
       const { data, error: userError } = await supabase.auth.getUser();
 
       const userId = data.user?.id;
       const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
-      const selectedLanguage = "es"; 
+      const selectedLanguage = "en"; 
       
       const { data: wordsData, error } = await supabase.from("messages").select("text").in("uid", [userId, sharedUserId]).eq("language", selectedLanguage);
       if (error) {
@@ -63,7 +62,7 @@ export default function SuccessPage() {
       return;
     }
 
-    const selectedLanguage = localStorage.getItem("language") || "es";
+    const selectedLanguage = localStorage.getItem("language") || "en";
 
     const { error } = await supabase.from("messages").insert([
       { text: newWord, uid: user.id, language: selectedLanguage }
@@ -80,7 +79,7 @@ export default function SuccessPage() {
   const handleAddHoveredWord = async () => {
     if (!hoveredWord?.word) return;
 
-    const selectedLanguage = localStorage.getItem("language") || "es";
+    const selectedLanguage = localStorage.getItem("language") || "en";
 
     // Add the word to the database if it's not already present
     if (!words.includes(hoveredWord.word)) {
@@ -157,7 +156,7 @@ export default function SuccessPage() {
 
     const fetchDefinition = async () => {
       try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/es/${hoveredWord.word}`);
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${hoveredWord.word}`);
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
           setDefinitions((prev) => ({
