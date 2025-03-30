@@ -6,11 +6,14 @@ import { PracticeTab } from "./PracticeTab"
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { SettingsTab } from "./settingsTab"
+import { useLanguage } from "@/lang/LanguageContext"; // Import the useLanguage hook
+import headerTranslations from "@/lang/header"; // Import the login translations
 
 export function Header() {
   const [showPractice, setShowPractice] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const router = useRouter();
+  const { language } = useLanguage();
 
   // Toggle functions
   const togglePractice = () => setShowPractice((prev) => !prev);
@@ -36,13 +39,13 @@ export function Header() {
               className="bg-[#FF9147] text-white hover:bg-[#E67E33]"
               onClick={togglePractice}
             >
-              Practice
+              {headerTranslations[language].practice}
             </Button>
             {showPractice && <PracticeTab onClose={() => setShowPractice(false)} />}
           </div>
           {/* Temporarily removed vocab button */}
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"onClick={() => alert('Vocab page coming soon!')}>
-              Vocab
+            {headerTranslations[language].vocab}
             </Button>
 
           {/* Settings Button */}
@@ -58,7 +61,7 @@ export function Header() {
 
           <Link href="/">
             <span className="text-sm text-red-600 hover:text-red-700" onClick={handleLogout}>
-              Log out
+            {headerTranslations[language].logout}
             </span>
           </Link>
         </div>
