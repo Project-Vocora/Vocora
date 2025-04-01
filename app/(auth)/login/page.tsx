@@ -10,7 +10,7 @@ import { Icons } from "@/components/ui/icons";
 import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lang/LanguageContext"; // Import the useLanguage hook
-import loginTranslations from "@/lang/login_tr"; // Import the login translations
+import loginTranslations from "@/lang/login"; // Import the login translations
 
 export default function LoginPage() {
   const { language } = useLanguage(); // Get current language from context

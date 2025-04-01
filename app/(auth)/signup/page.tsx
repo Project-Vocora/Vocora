@@ -10,7 +10,7 @@ import { Icons } from "@/components/ui/icons";
 import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lang/LanguageContext"; // Import the useLanguage hook
-import signupTranslations from "@/lang/signup_tr"; // Import the signup translations
+import signupTranslations from "@/lang/signup"; // Import the signup translations
 
 function SignUpForm({
   isLoading,

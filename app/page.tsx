@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import homeTranslations from "@/lang/app-page_tr"; // Ensure this is set up correctly
+import homeTranslations from "@/lang/app-page"; // Ensure this is set up correctly
 import { useLanguage } from "@/lang/LanguageContext"; // Use the Language context
 
 export default function HomePage() {

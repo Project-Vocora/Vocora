@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lang/LanguageContext"; // Import the useLanguage hook
-import navbarTranslations from "@/lang/Navbar_tr"; // Ensure the import is correct
+import navbarTranslations from "@/lang/Navbar"; // Ensure the import is correct
 
 export function Navbar() {
   const { language, setLanguage } = useLanguage(); // Get language and setter
