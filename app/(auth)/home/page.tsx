@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Icons } from "@/components/ui/icons";
 import { Navbar } from "@/components/Navbar";
 import { useLanguage } from "@/lang/LanguageContext";
-import homeTransla from "@/lang/home_tr";
+import homeTransla from "@/lang/home";
 import { supabase } from "@/lib/supabase";
 
 function HomeContent() {
@@ -56,6 +56,7 @@ function HomeContent() {
         .from("user_preferences")
         .insert({
           uid: user.id,
+          email: user.email,
           preferred_lang: language,
           practice_lang: language,
         })
