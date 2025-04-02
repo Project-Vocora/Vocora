@@ -30,11 +30,11 @@ export default function SuccessPage() {
       const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
       const selectedLanguage = "en"; 
       
-      const { data: wordsData, error } = await supabase.from("messages").select("text").in("uid", [userId, sharedUserId]).eq("language", selectedLanguage);
+      const { data: wordsData, error } = await supabase.from("vocab_words").select("word").in("uid", [userId, sharedUserId]).eq("language", selectedLanguage);
       if (error) {
         console.error("Error fetching words:", error);
       } else {
-        setWords(wordsData.map((row) => row.text));
+        setWords(wordsData.map((row) => row.word));
       }
     };
     fetchWords();
@@ -64,8 +64,8 @@ export default function SuccessPage() {
 
     const selectedLanguage = localStorage.getItem("language") || "en";
 
-    const { error } = await supabase.from("messages").insert([
-      { text: newWord, uid: user.id, language: selectedLanguage }
+    const { error } = await supabase.from("vocab_words").insert([
+      { word: newWord, uid: user.id, language: selectedLanguage }
     ]);
     if (error) {
       console.error("Error adding new word:", error);
@@ -83,7 +83,7 @@ export default function SuccessPage() {
 
     // Add the word to the database if it's not already present
     if (!words.includes(hoveredWord.word)) {
-      const { error } = await supabase.from("messages").insert([{ text: hoveredWord.word, language: selectedLanguage }]);
+      const { error } = await supabase.from("vocab_words").insert([{ word: hoveredWord.word, language: selectedLanguage }]);
       if (error) {
         console.error("Error adding hovered word:", error);
       } else {

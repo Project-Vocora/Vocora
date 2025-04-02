@@ -15,12 +15,12 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
 
   useEffect(() => {
     const fetchWords = async () => {
-      const { data, error } = await supabase.from("messages").select("text");
+      const { data, error } = await supabase.from("vocab_words").select("word");
 
       if (error) {
         console.error("Error fetching words:", error);
       } else {
-        setWords(data.map((row) => row.text));
+        setWords(data.map((row) => row.word));
       }
     };
 
@@ -56,7 +56,7 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
   const handleAddHoveredWord = async () => {
     if (!hoveredWord?.word || words.includes(hoveredWord.word)) return;
 
-    const { error } = await supabase.from("messages").insert([{ text: hoveredWord.word }]);
+    const { error } = await supabase.from("vocab_words").insert([{ word: hoveredWord.word }]);
     if (error) {
       console.error("Error adding hovered word:", error);
     } else {
