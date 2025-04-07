@@ -1,17 +1,18 @@
-// translations.ts
 "use client";
 
-export const Settings_tr = {
+// lang/home.ts
+
+const settingsTranslations = {
     en: {
       title: "Settings",
-      options: "Settings Options:",
-      description: "⚙️ Settings.",
-      close: "Close",
     },
     es: {
       title: "Configuraciones",
-      options: "Opciones de configuración:",
-      description: "⚙️ Configuraciones.",
-      close: "Cerrar",
     },
-  };
+    zh: {
+      title: "ZHsettings",
+    },
+  } as const;
+  
+  export default settingsTranslations;
+  
