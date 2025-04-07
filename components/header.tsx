@@ -1,10 +1,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { PracticeTab } from "./PracticeTab"
+import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
+import { PracticeTab } from "./PracticeTab"
+import { VocabTab} from "./vocabTab";
 import { SettingsTab } from "./settingsTab"
 import { useLanguage } from "@/lang/LanguageContext"; // Import the useLanguage hook
 import headerTranslations from "@/lang/header"; // Import the login translations
@@ -12,12 +14,61 @@ import headerTranslations from "@/lang/header"; // Import the login translations
 export function Header() {
   const [showPractice, setShowPractice] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showVocab, setShowVocab] = useState(false);
   const router = useRouter();
   const { language } = useLanguage();
+  const [user, setUser] = useState<any>(null);
+  const tabRef = useRef<HTMLDivElement>(null);
 
-  // Toggle functions
-  const togglePractice = () => setShowPractice((prev) => !prev);
-  const toggleSettings = () => setShowSettings((prev) => !prev);
+  // Fetch user session
+  useEffect(() => {
+    const fetchUserSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession(); 
+      if (error) {
+        console.error("Error fetching session:", error.message);
+      } else {
+        setUser(session?.user || null);
+      }
+    };
+    
+    fetchUserSession();
+  },[]);
+  
+  // Toggle functions (only one tab at a time)
+  const togglePractice = () => {
+    setShowPractice((prev) => !prev);
+    setShowVocab(false);
+    setShowSettings(false);
+  };
+  
+  const toggleVocab = () => {
+    setShowVocab((prev) => !prev);
+    setShowPractice(false);
+    setShowSettings(false);
+  };
+  
+  const toggleSettings = () => {
+    setShowSettings((prev) => !prev);
+    setShowPractice(false);
+    setShowVocab(false);
+  };
+  
+  // Close tabs when clicking outside or pressing Escape
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowPractice(false);
+        setShowVocab(false);
+        setShowSettings(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -32,8 +83,8 @@ export function Header() {
             <span className="text-3xl font-semibold">Vocora</span>
           </Link>
         </div>
-        <div className="flex-1 flex items-center justify-end gap-4">
-        
+        <div className="flex-1 flex items-center justify-end gap-4" ref={tabRef}>
+          {/* Practice Button */}
           <div className="relative">
             <Button
               className="bg-[#FF9147] text-white hover:bg-[#E67E33]"
@@ -43,20 +94,35 @@ export function Header() {
             </Button>
             {showPractice && <PracticeTab onClose={() => setShowPractice(false)} />}
           </div>
-          {/* Temporarily removed vocab button */}
-            <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"onClick={() => alert('Vocab page coming soon!')}>
-            {headerTranslations[language].vocab}
+
+          {/* Vocab Button */}
+          <div className="relative">
+            <Button 
+              className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]"
+              onClick={toggleVocab}
+            >
+              {headerTranslations[language].vocab}
             </Button>
+            {showVocab && <VocabTab user = {user} onClose={() => setShowVocab(false)}/>}
+          </div>
 
           {/* Settings Button */}
-          <div className="relative">
+          <div className="relative flex items-center">
             <button
-              className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300"
+              className="flex items-center gap-2 text-black"
               onClick={toggleSettings}
             >
-              <Image src="/gear_icon.png" alt="Settings" width={24} height={24} />
+              {showSettings && (
+                <span className="text-sm font-semibold">Settings</span>)}
+                <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300">
+                  <Image src="/gear_icon.png" alt="Settings" width={20} height={20} />
+                </div>
             </button>
-            {showSettings && <SettingsTab onClose={() => setShowSettings(false)} />}
+            {showSettings && (
+              <div className="absolute top-full left-0 mt-2 z-50">
+                <SettingsTab onClose={() => setShowSettings(false)} />
+              </div>
+            )}
           </div>
 
           <Link href="/">

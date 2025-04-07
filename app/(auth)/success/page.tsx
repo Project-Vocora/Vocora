@@ -18,6 +18,24 @@ export default function SuccessPage() {
   const [loading, setLoading] = useState(false);
   const [story, setStory] = useState<string | null>(null);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);  // Store the user data
+  const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true);  // To track loading state of session
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: userData, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching user:", error.message);
+      } else {
+        setUser(userData);
+      }
+      setIsSessionLoading(false);  // Mark session loading as complete
+    };
+
+    fetchUser();
+
+    // Listen for session changes to ensure the user is authenticated
+  }, []);
 
   // Fetch words from Supabase database
   useEffect(() => {
@@ -215,12 +233,9 @@ export default function SuccessPage() {
     
 
   };
-
-  
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+      <Header/>
       <main className="flex-1 flex justify-between p-6 max-w-6xl mx-auto w-full gap-8">
         {/* Left-Aligned Content */}
         <div className="flex flex-col items-start justify-center w-1/2 space-y-8">
@@ -250,6 +265,10 @@ export default function SuccessPage() {
               <Button
                 key={index}
                 variant="outline"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", word);
+                }}
                 className={`text-lg ${
                   selectedWords.has(word)
                     ? "bg-purple-600 text-white hover:bg-purple-600 hover:text-white"

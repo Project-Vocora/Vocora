@@ -17,11 +17,9 @@ export function SettingsTab({ onClose }: SettingsTabProps) { // Use the props in
 
   return (
     <div className="settings-tab">
-      <h2 className="text-lg font-semibold">Settings</h2>
-      
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Button className="bg-gray-200">Select Language</Button>
+          <Button className="bg-gray-500 text-white hover:bg-gray-600">Select Language</Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={() => handleLanguageChange("en")}>English</DropdownMenuItem>
