@@ -113,7 +113,7 @@ export default function LoginPage() {
               <Icons.google className="mr-2 h-4 w-4" />
               {loginTranslations[language].googleSignIn}
             </Button>
-            <Button variant="link" className="w-full" onClick={() => router.push(`/${language}/signup`)}>
+            <Button variant="link" className="w-full" onClick={() => router.push(`/signup`)}>
               {loginTranslations[language].signUpLink}
             </Button>
           </CardFooter>
