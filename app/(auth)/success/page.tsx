@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/header";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lang/LanguageContext";
 
 export default function SuccessPage() {
   const [words, setWords] = useState<string[]>([]);
@@ -20,7 +21,8 @@ export default function SuccessPage() {
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);  // Store the user data
   const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true);  // To track loading state of session
-
+  const { language } = useLanguage();
+  
   useEffect(() => {
     const fetchUser = async () => {
       const { data: userData, error } = await supabase.auth.getUser();
@@ -39,16 +41,14 @@ export default function SuccessPage() {
 
   // Fetch words from Supabase database
   useEffect(() => {
-    localStorage.setItem("language", "en");
-    
     const fetchWords = async () => {
+      
       const { data, error: userError } = await supabase.auth.getUser();
 
       const userId = data.user?.id;
       const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
-      const selectedLanguage = "en"; 
       
-      const { data: wordsData, error } = await supabase.from("vocab_words").select("word").in("uid", [userId, sharedUserId]).eq("language", selectedLanguage);
+      const { data: wordsData, error } = await supabase.from("vocab_words").select("word").in("uid", [sharedUserId]).eq("language", language);
       if (error) {
         console.error("Error fetching words:", error);
       } else {
@@ -74,23 +74,8 @@ export default function SuccessPage() {
   // This function adds a new word to the database
   const handleAddWord = async () => {
     if (newWord.trim() === "") return;
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user){
-      console.error("Error adding new word:", userError);
-      return;
-    }
-
-    const selectedLanguage = localStorage.getItem("language") || "en";
-
-    const { error } = await supabase.from("vocab_words").insert([
-      { word: newWord, uid: user.id, language: selectedLanguage }
-    ]);
-    if (error) {
-      console.error("Error adding new word:", error);
-    } else {
-      setWords([...words, newWord]);
-      setNewWord("");
-    }
+    setWords([...words, newWord]);
+    setNewWord("");
   };
 
   // Function to add the hovered word to the database
