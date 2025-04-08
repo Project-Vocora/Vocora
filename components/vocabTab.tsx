@@ -44,10 +44,10 @@ export const VocabTab: React.FC<VocabTabProps> = ({ user, onClose}) => {
 
   // Creates a new vocabulary list in the database.
   const handleCreateVocabList = async () => {
-    if (!newListName) return alert("Please enter a list name.");
+    if (!newListName) return alert(vocabTabTranslations[language].listName);
 
     if (!user?.id) {
-      alert("User is not authenticated.");
+      alert(vocabTabTranslations[language].userError);
       return;
     }
 
@@ -98,7 +98,7 @@ export const VocabTab: React.FC<VocabTabProps> = ({ user, onClose}) => {
   
   // Handles adding a word to a selected vocab list
   const handleAddWord = async () => {
-    if (!newWord || !selectedListId) return alert("Please enter a word and select a list.");
+    if (!newWord || !selectedListId) return alert(vocabTabTranslations[language].addWordError);
 
     const { error } = await supabase
       .from("vocab_words")
@@ -132,7 +132,7 @@ export const VocabTab: React.FC<VocabTabProps> = ({ user, onClose}) => {
           type="text"
           value={newListName}
           onChange={(e) => setNewListName(e.target.value)}
-          placeholder="Enter list name"
+          placeholder={vocabTabTranslations[language].addListNamePlaceholder}
           className="mb-2 p-2 border rounded"
         />
         <Button className="bg-blue-500 text-white hover:bg-blue-600" onClick={handleCreateVocabList}>
@@ -192,7 +192,7 @@ export const VocabTab: React.FC<VocabTabProps> = ({ user, onClose}) => {
           }}
         >
           {words.length === 0 ? (
-            <p className="text-black">Drag words here to add them to this list</p>
+            <p className="text-black">{vocabTabTranslations[language].dragWords}</p>
           ):(
             <div className="flex flex-wrap gap-2 justify-center">
               {words.map((word, index) => (
