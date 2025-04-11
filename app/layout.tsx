@@ -1,18 +1,34 @@
-import type { Metadata } from "next";
+// app/layout.tsx
 import "@/styles/globals.css";
-import { LanguageProvider } from "@/lang/LanguageContext"; // Import the language provider
+import { Inter } from "next/font/google";
+import { LanguageProvider } from "@/lang/LanguageContext";
+import { ThemeProvider } from "@/components/theme-provider";
 
-export const metadata: Metadata = {
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata = {
   title: "Vocora",
   description: "Created by Andrea, Teresa, Mariana, Perla",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <LanguageProvider>
-      <html lang="en"> {/* Static lang attribute set to English */}
-        <body>{children}</body>
-      </html>
-    </LanguageProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="color-scheme" content="light dark" />
+      </head>
+      <body className={inter.className} suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

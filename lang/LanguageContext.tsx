@@ -19,9 +19,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check if the window object is available before accessing localStorage
     if (typeof window !== "undefined") {
-      const savedLanguage = localStorage.getItem("language") as Language | null;
-      if (savedLanguage) {
-        setLanguage(savedLanguage);
+      const savedLanguage = localStorage.getItem("language");
+      const validLanguages = ["en", "es", "zh"];
+      if (savedLanguage && validLanguages.includes(savedLanguage)) {
+        setLanguage(savedLanguage as Language);
       }
     }
   }, []);
