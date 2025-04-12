@@ -75,7 +75,15 @@ export function Navbar() {
           >
             {translated.signup}
           </Link>
-          <Select defaultValue="english">
+          <Select 
+            onValueChange={(val) => {
+              if (val === "en" || val === "es" || val === "zh") {
+                setLanguage(val);
+                localStorage.setItem("language", val);
+              }
+            }}
+            value={language}
+          >
             <SelectTrigger className="w-full bg-white/20 border-white/30 text-white mt-1">
               <SelectValue />
             </SelectTrigger>
