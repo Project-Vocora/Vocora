@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
 import { Navbar } from "@/components/dashboard/navbar";
 
-function Dashboard() {
+function useSetLanguageFromURL() {
   const { language, setLanguage } = useLanguage();
   const searchParams = useSearchParams();
   const langFromURL = searchParams?.get("lang");
@@ -59,7 +59,6 @@ function Dashboard() {
           uid: user.id,
           email: user.email,
           preferred_lang: language,
-          practice_lang: language,
         })
         .select();
       
@@ -72,7 +71,6 @@ function Dashboard() {
             .from("user_preferences")
             .update({
               preferred_lang: language,
-              practice_lang: language,
             })
             .eq("uid", user.id);
 
@@ -92,17 +90,71 @@ function Dashboard() {
     logUserLanguage();
   }, [languageReady]);
 
-  // If the language is not ready, DO NOT render anything.
-  if (!languageReady) return null;
+  return languageReady;
 };
 
 export default function DashboardPage() {
-  Dashboard();
+  const languageReady = useSetLanguageFromURL();
   const { language, setLanguage } = useLanguage();
-  const [progress, setProgress] = useState(68)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [progress, setProgress] = useState(68);
   const router = useRouter();
   const translated = dashBoardTranslations[language];
+  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
+
+  // Fetches the user's practice language from Supabase.
+  useEffect(() => {
+    // Gets current Supabase user session.
+    const fetchPracticeLang = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from("user_preferences")
+        .select("practice_lang")
+        .eq("uid", session.user.id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching practice_lang:", error.message);
+        return;
+      }
+
+      // Sets the practice language if it is one of the supported languages.
+      if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
+        setPracticeLang(data.practice_lang);
+      }
+    };
+
+    // Fetches the user's practice language only if language is ready.
+    if (languageReady) {
+      fetchPracticeLang();
+    }
+  }, [languageReady]);
+
+  // Updates the user's practice language in Supabase when changed.
+  const handlePracticeLangChange = async (value: "en" | "es" | "zh") => {
+    // Sets the practice language in the state.
+    setPracticeLang(value);
+  
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData.session;
+    if (!session) return;
+
+    const { error } = await supabase
+      .from("user_preferences")
+      .update({ practice_lang: value })
+      .eq("uid", session.user.id);
+
+    if (error) {
+      console.error("Failed to update practice_lang:", error.message);
+    }
+  };
+
+  // Prevents all actions until language is "ready".
+  if (!languageReady) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950 dark:to-slate-900 dark:text-white">
@@ -119,7 +171,7 @@ export default function DashboardPage() {
                       <p className="text-purple-100">{dashBoardTranslations[language].continue}</p>
                     </div>
 
-                    <Select value={language} onValueChange={(value) => setLanguage(value as "en" | "es" | "zh")}>
+                    <Select value={practiceLang} onValueChange={handlePracticeLangChange}>
                       <SelectTrigger className="w-full md:w-[180px] bg-white/20 border-white/30 text-white">
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>

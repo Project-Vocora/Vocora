@@ -71,10 +71,9 @@ export default function LoginPage() {
       }
 
       console.log("Authentication successful.", loginData);
-      // When we successfully complete the Home page our login page will redirect towards it.
-      // router.push(`/home?lang=${language}`);
+      router.push(`/dashboard?lang=${language}`);
       // For right now : 
-      router.push(`/success`);
+      // router.push(`/success`);
     } catch (error) {
       console.error("Error during form submission:", error);
       setError(error instanceof Error ? error.message : loginTranslations[language].unexpectedError);
@@ -88,9 +87,9 @@ export default function LoginPage() {
     setError(null);
 
     const googleLang = language === "es" ? "es-419" : language;
-    // const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/home?lang=${language}`;
+    const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/dashboard?lang=${language}`;
     // For right now: 
-    const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/success`;
+    // const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/success`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
