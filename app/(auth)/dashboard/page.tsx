@@ -93,7 +93,7 @@ function useSetLanguageFromURL() {
   return languageReady;
 };
 
-export default function DashboardPage() {
+function DashboardPage(){
   const languageReady = useSetLanguageFromURL();
   const { language, setLanguage } = useLanguage();
   const [progress, setProgress] = useState(68);
@@ -155,7 +155,7 @@ export default function DashboardPage() {
   if (!languageReady) {
     return null;
   }
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950 dark:to-slate-900 dark:text-white">
       <Navbar/>
@@ -354,3 +354,13 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+function DashboardPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardPage />
+    </Suspense>
+  );
+}
+
+export default DashboardPageWrapper;
