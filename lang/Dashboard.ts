@@ -1,7 +1,5 @@
 "use client";
 
-import { LucideVegan } from "lucide-react";
-
 const dashBoardTranslations = {
     en: {
         navBar: {
@@ -44,7 +42,8 @@ const dashBoardTranslations = {
             long: "Long Story",
         },
 
-        generateStoryTitle: "Generate Story",
+        generateStoryTitle: "Story Generator",
+        generateStoryButton: "Generate Story",
         
         extras: {
             option1: "Word Lists",
@@ -99,7 +98,8 @@ const dashBoardTranslations = {
             long: "Cuento largo",
         },
 
-        generateStoryTitle: "Generar historia",
+        generateStoryTitle: "Generador de historias",
+        generateStoryButton: "Generar historia",
 
        extras :{
             option1: "Listas de palabras",
@@ -154,6 +154,7 @@ const dashBoardTranslations = {
         },
 
         generateStoryTitle: "生成故事",
+        generateStoryButton: "生成故事",
 
         extras: {
             option1: "单词列表",

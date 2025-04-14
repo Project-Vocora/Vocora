@@ -100,6 +100,11 @@ function DashboardPage(){
   const router = useRouter();
   const translated = dashBoardTranslations[language];
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
+  const languageLabels = {
+    en: "English",
+    es: "Español",
+    zh: "中文",
+  } as const;
 
   // Fetches the user's practice language from Supabase.
   useEffect(() => {
@@ -282,7 +287,7 @@ function DashboardPage(){
             <h2 className="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200">{translated.generateStoryTitle}</h2>
             <Card className="border-purple-100 dark:border-purple-800 dark:bg-slate-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">{translated.generateStory} {language}</CardTitle>
+                <CardTitle className="text-lg">{translated.generateStory} {languageLabels[practiceLang]}</CardTitle>
                 <CardDescription className="dark:text-slate-400">
                   {translated.generateStoryDescription}
                 </CardDescription>
@@ -300,7 +305,7 @@ function DashboardPage(){
                 </Select>
                 <Button className="gap-2" onClick={() => router.push("/success")}>
                   <Sparkles className="h-4 w-4" />
-                  {translated.generateStoryTitle}
+                  {translated.generateStoryButton}
                 </Button>
               </CardContent>
             </Card>
