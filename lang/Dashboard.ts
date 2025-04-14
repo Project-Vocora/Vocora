@@ -10,6 +10,7 @@ const dashBoardTranslations = {
             profile: "Profile",
             logout: "Logout",
             account: "Account",
+            dashboard: "Dashboard",
         },
         
         greeting: "Welcome back!",
@@ -63,6 +64,7 @@ const dashBoardTranslations = {
             profile: "Perfil",
             logout: "Cerrar sesión",
             account: "Cuenta",
+            dashboard: "Tablero",
         },
 
         greeting: "¡Bienvenido de nuevo!",
@@ -117,6 +119,7 @@ const dashBoardTranslations = {
             profile: "个人资料",
             logout: "登出",
             account: "账户",
+            dashboard: "仪表板",
         },
 
         greeting: "欢迎回来！",
