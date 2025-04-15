@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Header } from "@/components/story-generator/header";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lang/LanguageContext";
+import storyGenerator from "@/lang/Story-Generator/story-generator";
 
 export default function SuccessPage() {
   const [words, setWords] = useState<string[]>([]);
@@ -22,6 +23,7 @@ export default function SuccessPage() {
   const [user, setUser] = useState<any>(null);  // Store the user data
   const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true);  // To track loading state of session
   const { language } = useLanguage();
+  const translated = storyGenerator[language];
   
   useEffect(() => {
     const fetchUser = async () => {
@@ -109,7 +111,7 @@ export default function SuccessPage() {
 
   // This function handles word selection and triggers story generation
   const handleGenerateStory = async () => {
-    if (selectedWords.size === 0) return alert("Please select at least one word for the story.");
+    if (selectedWords.size === 0) return alert(translated.listError);
 
     const response = await fetch("/api/generate-story", {
       method: "POST",
@@ -172,14 +174,14 @@ export default function SuccessPage() {
         } else {
           setDefinitions((prev) => ({
             ...prev,
-            [hoveredWord.word]: { definition: "Definition not found.", partOfSpeech: "unknown" },
+            [hoveredWord.word]: { definition: translated.definitionError, partOfSpeech: translated.partofSpeechError},
           }));
         }
       } catch (error) {
         console.error("Error fetching definition:", error);
         setDefinitions((prev) => ({
           ...prev,
-          [hoveredWord.word]: { definition: "Error fetching definition.", partOfSpeech: "unknown" },
+          [hoveredWord.word]: { definition: translated.definitionError2, partOfSpeech: translated.partofSpeechError},
         }));
       }
     };
@@ -191,7 +193,7 @@ export default function SuccessPage() {
   // this function converts the text to speech
   const handleConvertToSpeech = async () => {
 
-      if (!story) return alert("Generate a story first!");
+      if (!story) return alert(translated.speechError1);
 
       try {
         const response = await fetch("/api/generate-full-audio", {
@@ -202,7 +204,7 @@ export default function SuccessPage() {
     
         if (!response.ok) {
           console.error("Error fetching audio:", response.statusText);
-          return alert("Failed to generate audio.");
+          return alert(translated.speechError2);
         }
     
         const audioBlob = await response.blob();
@@ -224,13 +226,13 @@ export default function SuccessPage() {
       <main className="flex-1 flex justify-between p-6 max-w-6xl mx-auto w-full gap-8">
         {/* Left-Aligned Content */}
         <div className="flex flex-col items-start justify-center w-1/2 space-y-8">
-          <h2 className="text-lg font-semibold self-center w-full text-center">Vocabulary List:</h2>
+          <h2 className="text-lg font-semibold self-center w-full text-center">{translated.title}</h2>
 
           {/* Word Input Field */}
           <div className="w-full max-w-2xl">
             <Input
               type="text"
-              placeholder="Type a new word..."
+              placeholder={translated.typeWord}
               className="w-full h-12 text-lg px-4 rounded-md"
               value={newWord}
               onChange={(e) => setNewWord(e.target.value)}
@@ -244,7 +246,7 @@ export default function SuccessPage() {
               className="bg-purple-500 text-white hover:bg-purple-600"
               onClick={handleAddWord}
             >
-              + Add
+              {translated.add}
             </Button>
             {words.map((word, index) => (
               <Button
@@ -270,12 +272,12 @@ export default function SuccessPage() {
           <div className="w-full max-w-2xl mt-8">
             <div className="flex gap-4 justify-center">
               <Button variant="outline" className="mb-4 border-purple-500" onClick={handleGenerateStory}>
-                + Generate Story
+              {translated.generate}
               </Button>
 
               {generatedStory && (
                 <Button variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600" onClick={handleConvertToSpeech}>
-                  Read Aloud
+                {translated.reading}
                 </Button>
               )}
 
@@ -283,7 +285,7 @@ export default function SuccessPage() {
               {audioSrc && (
                 <audio key={audioSrc} controls autoPlay className="mt-0">
                 <source src={audioSrc} type="audio/mpeg" />
-                  Your browser does not support the audio element.
+                {translated.audioError}
               </audio>
             )}
             </div>
@@ -309,7 +311,7 @@ export default function SuccessPage() {
                           <p className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</p>
 
                           <button className="mt-2 w-full bg-purple-500 text-white py-1 px-2 rounded text-xs flex items-center justify-center hover:bg-purple-600" onClick={handleAddHoveredWord}>
-                            Add to List +
+                            {translated.addToList}
                           </button>
 
                           <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-gray-100 rotate-45 border border-gray-300"></div>

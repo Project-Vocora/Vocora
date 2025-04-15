@@ -13,6 +13,7 @@ export function SettingsTab({ onClose }: SettingsTabProps) {
   const { language, setLanguage } = useLanguage();
   const [preferredLang, setPreferredLang] = useState<"en" | "es" | "zh">("en");
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
+  const translated = settingsTranslations[language];
 
   useEffect(() => {
     const fetchPreferences = async () => {
@@ -51,8 +52,8 @@ export function SettingsTab({ onClose }: SettingsTabProps) {
   };
 
   const fallbackTranslation = {
-    preferredLanguage: "Language",
-    practiceLanguage: "Practice Language"
+    preferredLanguage: translated.language,
+    practiceLanguage: translated.practiceLanguage,
   };
 
   const translations = {
@@ -62,42 +63,48 @@ export function SettingsTab({ onClose }: SettingsTabProps) {
 
   return (
     <div className="w-[350px] max-h-[80vh] p-4 bg-white shadow-lg rounded-md overflow-visible">
-      <div className="flex items-center justify-between">
-        <span className="font-medium text-black">{translations.preferredLanguage}</span>
-        <Select value={preferredLang} onValueChange={(val) => {
-          setPreferredLang(val as "en" | "es" | "zh");
-          updatePreference("preferred_lang", val as "en" | "es" | "zh");
-        }}>
-          <SelectTrigger className="w-28">
-            <SelectValue placeholder="Select" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="es">Español</SelectItem>
-            <SelectItem value="zh">中文</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <div className="space-y-3">
+        {/* Preferred Language */}
+        <div className="flex items-center justify-between">
+          <span className="font-medium text-black-bold">{translations.preferredLanguage}</span>
+          <Select
+            value={preferredLang}
+            onValueChange={(val) => {
+              setPreferredLang(val as "en" | "es" | "zh");
+              updatePreference("preferred_lang", val as "en" | "es" | "zh");
+            }}
+          >
+            <SelectTrigger className="w-28">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">{translated.languages.english}</SelectItem>
+              <SelectItem value="es">{translated.languages.spanish}</SelectItem>
+              <SelectItem value="zh">{translated.languages.mandarin}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="flex items-center justify-between">
-        <span className="font-medium text-black">{translations.practiceLanguage}</span>
-        <Select value={practiceLang} onValueChange={(val) => {
-          setPracticeLang(val as "en" | "es" | "zh");
-          updatePreference("practice_lang", val as "en" | "es" | "zh");
-        }}>
-          <SelectTrigger className="w-28">
-            <SelectValue placeholder="Select" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="es">Español</SelectItem>
-            <SelectItem value="zh">中文</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={onClose} className="mt-2 text-sm">Close</Button>
+        {/* Practice Language */}
+        <div className="flex items-center justify-between">
+          <span className="font-medium text-black-bold">{translations.practiceLanguage}</span>
+          <Select
+            value={practiceLang}
+            onValueChange={(val) => {
+              setPracticeLang(val as "en" | "es" | "zh");
+              updatePreference("practice_lang", val as "en" | "es" | "zh");
+            }}
+          >
+            <SelectTrigger className="w-28">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">{translated.languages.english}</SelectItem>
+              <SelectItem value="es">{translated.languages.spanish}</SelectItem>
+              <SelectItem value="zh">{translated.languages.mandarin}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import { VocabTab} from "./vocabTab";
 import { SettingsTab } from "./settingsTab"
 import { useLanguage } from "@/lang/LanguageContext"; // Import the useLanguage hook
 import headerTranslations from "@/lang/header"; // Import the login translations
+import settingsTranslations from '@/lang/SettingsTab';
 
 export function Header() {
   const [showPractice, setShowPractice] = useState(false);
@@ -107,20 +108,13 @@ export function Header() {
           </div>
 
           {/* Settings Button */}
-          <div className="relative flex items-center gap-2">
-            {showSettings && (
-              <span className="text-sm font-semibold text-white">Settings</span>
-            )}
-
-            <button
-              className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300"
-              onClick={toggleSettings}
-            >
-              <Image src="/gear_icon.png" alt="Settings" width={20} height={20} />
-            </button>
+          <div className="relative inline-block">
+            <Button onClick={toggleSettings}>
+              {settingsTranslations[language].title}
+            </Button>
 
             {showSettings && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-5 z-50">
+              <div className="fixed mt-5 right-0 translate-x-[calc(100%-24rem)] z-50 w-[300px]">
                 <SettingsTab onClose={() => setShowSettings(false)} />
               </div>
             )}
