@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Header } from "@/components/header";
+import { Header } from "@/components/story-generator/header";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lang/LanguageContext";
 

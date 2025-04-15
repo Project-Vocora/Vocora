@@ -303,7 +303,7 @@ function DashboardPage(){
                     <SelectItem value="long">{translated.storyType.long}</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button className="gap-2" onClick={() => router.push("/success")}>
+                <Button className="gap-2" onClick={() => router.push("/story-generator")}>
                   <Sparkles className="h-4 w-4" />
                   {translated.generateStoryButton}
                 </Button>
