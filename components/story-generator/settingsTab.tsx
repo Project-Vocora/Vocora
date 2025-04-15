@@ -1,37 +1,104 @@
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"; // Adjust the import according to your component structure
-import { useLanguage } from "@/lang/LanguageContext"; // Ensure to import the useLanguage hook
-import { Button } from "@/components/ui/button"; // Make sure you import the Button component
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lang/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import settingsTranslations from "@/lang/SettingsTab";
 
-// Define props interface
 interface SettingsTabProps {
-  onClose: () => void; // Define the onClose prop type as a function
+  onClose: () => void;
 }
 
-export function SettingsTab({ onClose }: SettingsTabProps) { // Use the props interface
-  const { language, setLanguage } = useLanguage(); // Access the current language and the function to set it
+export function SettingsTab({ onClose }: SettingsTabProps) {
+  const { language, setLanguage } = useLanguage();
+  const [preferredLang, setPreferredLang] = useState<"en" | "es" | "zh">("en");
+  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
 
-  const handleLanguageChange = (lang: "en" | "es" | "zh") => {
-    setLanguage(lang); // Change the language in the context
-    onClose(); // Optionally close the settings tab after changing the language
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from("user_preferences")
+        .select("preferred_lang, practice_lang")
+        .eq("uid", session.user.id)
+        .single();
+
+      if (!error && data) {
+        setPreferredLang(data.preferred_lang);
+        setPracticeLang(data.practice_lang);
+      }
+    };
+
+    fetchPreferences();
+  }, []);
+
+  const updatePreference = async (field: "preferred_lang" | "practice_lang", value: "en" | "es" | "zh") => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData.session;
+    if (!session) return;
+
+    const { error } = await supabase
+      .from("user_preferences")
+      .update({ [field]: value })
+      .eq("uid", session.user.id);
+
+    if (!error && field === "preferred_lang") {
+      setLanguage(value);
+    }
+  };
+
+  const fallbackTranslation = {
+    preferredLanguage: "Language",
+    practiceLanguage: "Practice Language"
+  };
+
+  const translations = {
+    ...fallbackTranslation,
+    ...settingsTranslations[language as keyof typeof settingsTranslations]
   };
 
   return (
-    <div className="settings-tab">
-      <h2 className="text-lg font-semibold">{settingsTranslations[language].title}</h2>
-      
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button className="bg-gray-200">{settingsTranslations[language].lang_opt}</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem onClick={() => handleLanguageChange("en")}>English</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleLanguageChange("es")}>Español</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleLanguageChange("zh")}>中文</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="w-[350px] max-h-[80vh] p-4 bg-white shadow-lg rounded-md overflow-visible">
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-black">{translations.preferredLanguage}</span>
+        <Select value={preferredLang} onValueChange={(val) => {
+          setPreferredLang(val as "en" | "es" | "zh");
+          updatePreference("preferred_lang", val as "en" | "es" | "zh");
+        }}>
+          <SelectTrigger className="w-28">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
+            <SelectItem value="zh">中文</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      {/* Other settings options can go here */}
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-black">{translations.practiceLanguage}</span>
+        <Select value={practiceLang} onValueChange={(val) => {
+          setPracticeLang(val as "en" | "es" | "zh");
+          updatePreference("practice_lang", val as "en" | "es" | "zh");
+        }}>
+          <SelectTrigger className="w-28">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
+            <SelectItem value="zh">中文</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={onClose} className="mt-2 text-sm">Close</Button>
+      </div>
     </div>
   );
 }

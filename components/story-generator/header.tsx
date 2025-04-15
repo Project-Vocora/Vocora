@@ -107,24 +107,26 @@ export function Header() {
           </div>
 
           {/* Settings Button */}
-          <div className="relative flex items-center">
+          <div className="relative flex items-center gap-2">
+            {showSettings && (
+              <span className="text-sm font-semibold text-white">Settings</span>
+            )}
+
             <button
-              className="flex items-center gap-2 text-black"
+              className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300"
               onClick={toggleSettings}
             >
-              {showSettings && (
-                <span className="text-sm font-semibold">Settings</span>)}
-                <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300">
-                  <Image src="/gear_icon.png" alt="Settings" width={20} height={20} />
-                </div>
+              <Image src="/gear_icon.png" alt="Settings" width={20} height={20} />
             </button>
+
             {showSettings && (
-              <div className="absolute top-full left-0 mt-2 z-50">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-5 z-50">
                 <SettingsTab onClose={() => setShowSettings(false)} />
               </div>
             )}
           </div>
 
+          {/* Logout Button */}
           <Link href="/">
             <span className="text-sm text-red-600 hover:text-red-700" onClick={handleLogout}>
             {headerTranslations[language].logout}

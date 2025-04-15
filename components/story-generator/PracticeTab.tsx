@@ -13,12 +13,41 @@ export const PracticeTab: React.FC<PracticeTabProps> = ({ onClose }) => {
   const [hoveredWord, setHoveredWord] = useState<{ word: string; index: number } | null>(null);
   const [definitions, setDefinitions] = useState<{ [key: string]: { definition: string; partOfSpeech: string } }>({});
 
+
   useEffect(() => {
     const fetchWords = async () => {
-      const { data, error } = await supabase.from("vocab_words").select("word");
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const session = sessionData.session;
+
+      if (sessionError || !session) {
+        console.error("User session not found:", sessionError?.message);
+        return;
+      }
+
+      const userId = session.user.id;
+
+      const { data: preferenceData, error: prefError } = await supabase
+      .from("user_preferences")
+      .select("practice_lang")
+      .eq("uid", userId)
+      .single();
+
+      if (prefError || !preferenceData?.practice_lang) {
+        console.error("Failed to fetch preferred language:", prefError?.message);
+        return;
+      }
+
+      const practiceLang = preferenceData.practice_lang;
+
+      // Fetch words by user + language
+      const { data, error } = await supabase
+        .from("vocab_words")
+        .select("word")
+        .eq("uid", userId)
+        .eq("language", practiceLang);
 
       if (error) {
-        console.error("Error fetching words:", error);
+        console.error("Error fetching words:", error.message);
       } else {
         setWords(data.map((row) => row.word));
       }
