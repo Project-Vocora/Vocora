@@ -1,8 +1,8 @@
 "use client";
 
 import type React from "react"
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,10 +43,26 @@ function LoginForm({
 }
 
 export default function LoginPage() {
-  const { language } = useLanguage(); // Get current language from context
+  const { language } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectedFrom = searchParams?.get('redirectedFrom') || '/dashboard';
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Only redirect if trying to access a protected route
+        if (redirectedFrom.startsWith('/dashboard')) {
+          router.push(redirectedFrom);
+        }
+      }
+    };
+    checkUser();
+  }, [router, redirectedFrom]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,9 +87,7 @@ export default function LoginPage() {
       }
 
       console.log("Authentication successful.", loginData);
-      router.push(`/dashboard?lang=${language}`);
-      // For right now : 
-      // router.push(`/success`);
+      router.push(redirectedFrom);
     } catch (error) {
       console.error("Error during form submission:", error);
       setError(error instanceof Error ? error.message : loginTranslations[language].unexpectedError);
@@ -87,9 +101,7 @@ export default function LoginPage() {
     setError(null);
 
     const googleLang = language === "es" ? "es-419" : language;
-    const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/dashboard?lang=${language}`;
-    // For right now: 
-    // const redirectURL = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/success`;
+    const redirectURL = `${window.location.origin}${redirectedFrom}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

@@ -8,10 +8,21 @@ import { useLanguage } from "@/lang/LanguageContext"; // Use the Language contex
 import { motion } from "framer-motion"
 import { VocoraMascot } from "@/components/vocora-mascot"
 import Footer from "@/components/Footer";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const { language } = useLanguage(); // Get the current language from context
   const translated = homeTranslations[language as keyof typeof homeTranslations];
+  const router = useRouter();
+
+  const handleLogin = () => {
+    router.push('/login');
+  };
+
+  const handleLearnMore = () => {
+    router.push('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar/>
@@ -50,15 +61,14 @@ export default function HomePage() {
                     {translated.buttonText}
                   </Button>
                 </Link>
-                <Link href="/dashboard" className="w-full sm:w-auto">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900"
-                  >
-                    {translated.buttonText2}
-                  </Button>
-                </Link>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900"
+                  onClick={handleLearnMore}
+                >
+                  {translated.buttonText2}
+                </Button>
               </div>
             </motion.div>
           </div>
