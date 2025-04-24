@@ -14,8 +14,7 @@ const storyGenerator = {
         partofSpeechError: "unknown",
         speechError1:"Generate a story first!",
         speechError2: "Failed to generate audio.",
-        typeWord: "Type a new word...",
-        speechButton: "Convert to Speech"
+        typeWord: "Type a new word...", 
     },
     es: {
         title: "Lista de vocabulario: ",
@@ -31,7 +30,6 @@ const storyGenerator = {
         speechError1:"¡Genera una historia primero!",
         speechError2: "Error al generar audio.",
         typeWord: "Escribe una nueva palabra...",
-        speechButton: "Convertir a Voz"
     },
     zh: {
         title: "词汇列表：",
@@ -47,7 +45,6 @@ const storyGenerator = {
         speechError1:"先生成一个故事！",
         speechError2: "生成音频失败。",
         typeWord: "输入一个新单词...",
-        speechButton: "转换为语音"
     },
   };
   

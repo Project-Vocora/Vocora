@@ -3,13 +3,10 @@ import "@/styles/globals.css";
 import { Inter } from "next/font/google";
 import { LanguageProvider } from "@/lang/LanguageContext";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
-import { SupportChat } from "@/components/support-chat";
-import type { Metadata } from "next";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Vocora",
   description: "Created by Andrea, Teresa, Mariana, Perla",
 };
@@ -29,8 +26,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           <LanguageProvider>
             {children}
-            <SupportChat />
-            <Toaster />
           </LanguageProvider>
         </ThemeProvider>
       </body>
