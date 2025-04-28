@@ -14,6 +14,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
 import { Navbar } from "@/components/dashboard/navbar";
+import {SupportChat} from "@/components/support-chat";
 
 function useSetLanguageFromURL() {
   const { language, setLanguage } = useLanguage();
@@ -348,6 +349,9 @@ function DashboardPage(){
               </CardContent>
             </Card>
           </section>
+            
+          <SupportChat />
+
         </div>
       </main>
 
