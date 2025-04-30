@@ -13,6 +13,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
 import { Navbar } from "@/components/dashboard/navbar";
+import {SupportChat} from "@/components/support-chat";
 import storyGenerator from "@/lang/Story-Generator/story-generator";
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
@@ -777,6 +778,9 @@ function DashboardPage() {
               </CardContent>
             </Card>
           </section>
+            
+          <SupportChat />
+
         </div>
       </main>
 
