@@ -11,7 +11,7 @@ const homeTranslations = {
       feature2: "Interactive Practice",
       feature2description: "Engage in natural conversations with our AI language partner anytime, anywhere.",
       feature3: "Vocabulary Lists",
-      feature3description: "Easily organize and review your learning with custom vocabulary lists tailored to your goals.",
+      feature3description: "Easily organize and review your learning with a custom vocabulary list tailored to your goals.",
       join: "Join other users in language learning today",
       signUp: "Sign Up for Free"
     },
@@ -25,7 +25,7 @@ const homeTranslations = {
       feature2: "Práctica Interactiva",
       feature2description: "Participa en conversaciones naturales con nuestros socios de idiomas AI en cualquier momento y lugar.",
       feature3: "Listas de Vocabulario",
-      feature3description: "Organiza y repasa tu aprendizaje fácilmente con listas de vocabulario creadas según tus objetivos.",
+      feature3description: "Organiza y repasa tu aprendizaje fácilmente con una lista de vocabulario creada según tus objetivos.",
       join: "Únete a otros usuarios en el aprendizaje de idiomas hoy",
       signUp: "Regístrate gratis"
     },

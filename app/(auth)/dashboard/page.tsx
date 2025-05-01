@@ -372,13 +372,13 @@ function DashboardPage() {
                     </Select>
                   </div>
 
-                  <div className="mt-6">
+                  {/* <div className="mt-6">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium">{translated.progress}</span>
                       <span className="font-medium">{progress}%</span>
                     </div>
                     <Progress value={progress} className="h-2.5 bg-white/20" />
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>
@@ -387,7 +387,7 @@ function DashboardPage() {
           {/* Main Features Grid */}
           <section>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Link href="/dashboard/speaking">
+              {/* <Link href="/dashboard/speaking">
                 <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -401,9 +401,9 @@ function DashboardPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
+              </Link> */}
 
-              <Link href="/dashboard/reading">
+              {/* <Link href="/dashboard/reading">
                 <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -417,7 +417,7 @@ function DashboardPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
+              </Link> */}
 
               <Link href="/dashboard/writing">
                 <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
