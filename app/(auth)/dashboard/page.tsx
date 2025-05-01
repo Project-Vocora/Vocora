@@ -28,6 +28,7 @@ function useSetLanguageFromURL() {
   const { language, setLanguage } = useLanguage();
   const searchParams = useSearchParams();
   const langFromURL = searchParams?.get("lang");
+  const [languageReady, setLanguageReady] = useState(false);
 
   // If language is in URL, update the language context.
   useEffect(() => {
@@ -36,9 +37,19 @@ function useSetLanguageFromURL() {
     }
   }, [langFromURL, setLanguage]);
 
-  // Log user language preference
+  // Markes language as "ready" once language matches URL.
   useEffect(() => {
+    if (langFromURL && language === langFromURL) {
+      setLanguageReady(true);
+    }
+  }, [langFromURL, language]);
+
+  // Prevents all actions until language is "ready".
+  useEffect(() => {
+    if (!languageReady) return;
+
     const logUserLanguage = async () => {
+      // Gets the current user session.
       const sessionResult = await supabase.auth.getSession();
       const session = sessionResult.data.session;
 
@@ -47,8 +58,10 @@ function useSetLanguageFromURL() {
         return;
       }
 
+      // Extracts user's information.
       const user = session.user;
       
+      // Inserts user's preferences into Supabase table.
       const { error: insertError } = await supabase
         .from("user_preferences")
         .insert({
@@ -58,8 +71,11 @@ function useSetLanguageFromURL() {
         })
         .select();
       
+      // If row already exists, update it.
       if (insertError) {
         if (insertError.code === "23505" || insertError.message.includes("duplicate key")) {
+          console.warn("Insert failed: row exists. Updating instead.");
+
           const { error: updateError } = await supabase
             .from("user_preferences")
             .update({
@@ -69,21 +85,27 @@ function useSetLanguageFromURL() {
 
           if (updateError) {
             console.error("User preferences update failed:", updateError.message);
+          } else {
+            console.log("User preferences updated successfully!");
           }
         } else {
           console.error("User preferences insert failed:", insertError.message);
         }
+      } else {
+        console.log("User preferences inserted successfully!");
       }
     };
-    
+    // Runs when language changes
     logUserLanguage();
-  }, [language]);
-}
+  }, [languageReady]);
+
+  return languageReady;
+};
 
 function DashboardPage() {
-  useSetLanguageFromURL();
+  const languageReady = useSetLanguageFromURL();
+  const { language, setLanguage } = useLanguage();
   const router = useRouter();
-  const { language } = useLanguage();
   const translated = dashBoardTranslations[language];
   const storyTranslated = storyGenerator[language];
   const [newWord, setNewWord] = useState("");
@@ -315,6 +337,10 @@ function DashboardPage() {
       toast.error("Failed to delete all words");
     }
   };
+
+  if (!languageReady) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950 dark:to-slate-900 dark:text-white">
