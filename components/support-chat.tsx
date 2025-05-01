@@ -8,6 +8,7 @@ import { MessageSquare, X, Send } from "lucide-react"
 import { useLanguage } from "@/lang/LanguageContext"
 import chatTranslations from "@/lang/chatbox"
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
 
 export function SupportChat() {
   const [isOpen, setIsOpen] = useState(false)

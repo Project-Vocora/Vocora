@@ -5,34 +5,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  const { message, language } = req.body;
+  const { message, language, history } = req.body;
 
   if (!message || !language) {
     return res.status(400).json({ error: "Missing message or language" });
   }
 
   try {
+    const formattedHistory =
+    Array.isArray(history) && history.length > 0
+      ? history.map((msg: { role: "user" | "ai"; content: string }) => ({
+          role: msg.role === "user" ? "user" : "model",
+          parts: [{ text: msg.content }],
+        }))
+      : [];
+
+      const contents = [
+        ...formattedHistory,
+        {
+          role: "user",
+          parts: [
+            {
+              text: `You are a friendly language tutor. You are texting someone learning ${language} and helping them practice. Keep replies short and simple and teach them as you go. Respond in ${language} the old chat history is provided for context:\n\n${message}`,
+            },
+          ],
+        },
+      ];
+
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: `You are a friendly language tutor, you are texting someone learning ${language} using you as a way to practice communicating. Keep it simple andshort. Respond in ${language}:\n\n${message}` }],
-            },
-          ],
-        }),
+        body: JSON.stringify({ contents }),
       }
     );
 
     const responseData = await geminiRes.json();
 
-    // Debug logging for transparency (optional)
     console.log("Gemini raw response:", JSON.stringify(responseData, null, 2));
 
-    const reply = responseData?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply received.";
+    const reply = responseData?.candidates?.[0]?.content?.parts
+        ?.map((p: { text: string }) => p.text)
+        ?.join("\n") || "No reply received.";
 
     res.status(200).json({ reply });
   } catch (error) {
