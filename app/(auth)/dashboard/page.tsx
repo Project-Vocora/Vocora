@@ -23,6 +23,7 @@ import { Loader2 } from "lucide-react"
 import { useVocabWords } from "@/hooks/useVocabWords";
 import { useStoryGenerator } from "@/hooks/useStoryGenerator";
 import { useAudio } from "@/hooks/useAudio";
+import { useHoverWord } from "@/hooks/useHoverDefinitions";
 
 function useSetLanguageFromURL() {
   const { language, setLanguage } = useLanguage();
@@ -118,7 +119,8 @@ function DashboardPage() {
   const { words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
   const { story, setStory, imageUrl, setImageUrl, loading,generateStory, generateImageFromStory,} = useStoryGenerator();
   const { audioSrc, convertToSpeech, setAudioSrc } = useAudio();
-
+  const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord,} = useHoverWord(practiceLang, words, setWords);
+  
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -649,9 +651,40 @@ function DashboardPage() {
                         {/* Story and Speech Controls */}
                         <div className="space-y-4">
                           <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-md">
-                            <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
-                              <div dangerouslySetInnerHTML={{ __html: highlightedStory }} />
+
+                            <div className="text-lg text-slate-700 dark:text-slate-300">
+                              {story?.split(/\b/).map((word, index) => {
+                                const clean = word.replace(/[^\w]/g, "").toLowerCase();
+                                return clean ? (
+                                  <span
+                                    key={index}
+                                    className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(clean) ? 'bg-yellow-300' : ''}`}
+                                    onMouseEnter={() => setHoveredWord({ word: clean, index })}
+                                    onMouseLeave={() => setHoveredWord(null)}
+                                  >
+                                    {word}
+                                    {hoveredWord?.word === clean && hoveredWord?.index === index && definitions[clean] && (
+                                      <div className="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border rounded shadow p-3 w-60 text-sm z-50">
+                                        <p className="font-bold">{clean}</p>
+                                        <p className="italic text-gray-500">{definitions[clean].partOfSpeech}</p>
+                                        <p>{definitions[clean].definition}</p>
+                                        <Button
+                                          onClick={handleAddHoveredWord}
+                                          className="mt-2 w-full text-xs bg-purple-600 hover:bg-purple-700 text-white"
+                                        >
+                                          Add to List
+                                        </Button>
+
+                                        <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rotate-45 z-[-1]" />
+                                      </div>
+                                    )}
+                                  </span>
+                                ) : (
+                                  word
+                                );
+                              })}
                             </div>
+
                             <div className="mt-6 flex flex-col gap-4">
                               <div className="flex gap-4">
                                 <Button
