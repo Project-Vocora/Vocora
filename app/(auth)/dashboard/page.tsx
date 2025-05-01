@@ -93,9 +93,8 @@ function DashboardPage() {
   const [storyLength, setStoryLength] = useState<"short" | "medium" | "long">("medium");
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
   const [savedStories, setSavedStories] = useState<any[]>([]);
-  const { words, setWords, addWord, deleteWord } = useVocabWords(language);
-  const {
-    story, setStory, imageUrl, setImageUrl, loading,generateStory, generateImageFromStory,} = useStoryGenerator();
+  const { words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
+  const { story, setStory, imageUrl, setImageUrl, loading,generateStory, generateImageFromStory,} = useStoryGenerator();
   const { audioSrc, convertToSpeech, setAudioSrc } = useAudio();
 
   useEffect(() => {
@@ -146,7 +145,7 @@ function DashboardPage() {
       return;
     }
 
-    const { error } = await addWord(trimmed, language);
+    const { error } = await addWord(trimmed, practiceLang);
     if (!error) {
       setNewWord("");
       toast.success("Word added");

@@ -6,13 +6,13 @@ export function useVocabWords(language: string) {
   
   useEffect(() => {
     const fetchWords = async () => {
-      const { data } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       const sharedUserId = process.env.NEXT_PUBLIC_SHARED_USER_ID;
 
       const { data: wordsData, error } = await supabase
         .from("vocab_words")
         .select("word")
-        .in("uid", [sharedUserId])
+        .in("uid", [sharedUserId, user?.id])
         .eq("language", language);
 
       if (!error && wordsData) {
