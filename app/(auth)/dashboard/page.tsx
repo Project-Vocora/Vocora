@@ -119,7 +119,7 @@ function DashboardPage() {
   const { words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
   const { story, setStory, imageUrl, setImageUrl, loading,generateStory, generateImageFromStory,} = useStoryGenerator();
   const { audioSrc, convertToSpeech, setAudioSrc } = useAudio();
-  const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord,} = useHoverWord(practiceLang, words, setWords);
+  const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord,} = useHoverWord(practiceLang, words, setWords, story || "", language);
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -666,15 +666,18 @@ function DashboardPage() {
                                     {hoveredWord?.word === clean && hoveredWord?.index === index && definitions[clean] && (
                                       <div className="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border rounded shadow p-3 w-60 text-sm z-50">
                                         <p className="font-bold">{clean}</p>
-                                        <p className="italic text-gray-500">{definitions[clean].partOfSpeech}</p>
-                                        <p>{definitions[clean].definition}</p>
+                                          {definitions[clean]?.translatedWord && (
+                                            <p className="text-sm text-gray-500 italic">({definitions[clean].translatedWord})</p>
+                                          )}
+                                          <p className="italic text-gray-500">{definitions[clean].partOfSpeech}</p>
+                                          <p>{definitions[clean].definition}</p>
+
                                         <Button
                                           onClick={handleAddHoveredWord}
                                           className="mt-2 w-full text-xs bg-purple-600 hover:bg-purple-700 text-white"
                                         >
                                           Add to List
                                         </Button>
-
                                         <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rotate-45 z-[-1]" />
                                       </div>
                                     )}
