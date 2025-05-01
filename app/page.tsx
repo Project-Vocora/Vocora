@@ -68,17 +68,17 @@ export default function HomePage() {
               {
                 title: translated.feature1,
                 description: translated.feature1description,
-                icon: "🧠",
+                icon: "📚",
               },
               {
                 title: translated.feature2,
                 description: translated.feature2description,
-                icon: "🗣️",
+                icon: "💬",
               },
               {
                 title: translated.feature3,
                 description: translated.feature3description,
-                icon: "📈",
+                icon: "📒",
               },
             ].map((feature, index) => (
               <motion.div
