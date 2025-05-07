@@ -2,13 +2,12 @@
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/lang/LanguageContext";
-import homeTransla from "@/lang/home";
 import { supabase } from "@/lib/supabase";
-import { BookOpen, Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus } from "lucide-react"
+import { Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+// import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { useRouter } from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
@@ -460,13 +459,13 @@ function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl flex items-center gap-2">
                     <List className="h-5 w-5 text-purple-500" />
-                    Words List
+                    {translated.extras.option1}
                   </CardTitle>
                   <div className="text-sm text-slate-500 dark:text-slate-400">
-                    {words.length} {words.length === 1 ? 'word' : 'words'}
+                    {words.length} {words.length === 1 ? translated.wordLists.word : translated.wordLists.words}
                   </div>
                 </div>
-                <CardDescription>Add and manage your vocabulary words</CardDescription>
+                <CardDescription>{translated.extras.option1Description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -490,7 +489,7 @@ function DashboardPage() {
                       />
                       {newWord.trim() !== "" && words.some(word => word.toLowerCase() === newWord.trim().toLowerCase()) && (
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 text-sm">
-                          Word already in list
+                          {translated.wordLists.error}
                         </div>
                       )}
                     </div>
@@ -506,7 +505,7 @@ function DashboardPage() {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Add word to list</p>
+                          <p>{translated.wordLists.add}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -529,7 +528,7 @@ function DashboardPage() {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Delete word</p>
+                                <p>{translated.wordLists.delete}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -547,11 +546,11 @@ function DashboardPage() {
                               className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
                             >
                               <X className="h-4 w-4 mr-1" />
-                              Delete All
+                              {translated.wordLists.deleteAll}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Delete all words</p>
+                            <p>{translated.wordLists.deleteAllWords}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -559,7 +558,7 @@ function DashboardPage() {
                   </div>
                   {words.length === 0 && (
                     <div className="text-center py-4 text-slate-500 dark:text-slate-400">
-                      No words in your list yet. Add some words to get started!
+                      {translated.wordLists.description}
                     </div>
                   )}
                 </div>
@@ -606,7 +605,7 @@ function DashboardPage() {
 
                   {/* Story Length Selector */}
                   <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Story Length:</span>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{translated.storyType.title}</span>
                     <Select
                       value={storyLength}
                       onValueChange={(value) => setStoryLength(value as "short" | "medium" | "long")}
@@ -615,9 +614,9 @@ function DashboardPage() {
                         <SelectValue placeholder="Select length" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="short">Short Story</SelectItem>
-                        <SelectItem value="medium">Medium Story</SelectItem>
-                        <SelectItem value="long">Long Story</SelectItem>
+                        <SelectItem value="short">{translated.storyType.short}</SelectItem>
+                        <SelectItem value="medium">{translated.storyType.medium}</SelectItem>
+                        <SelectItem value="long">{translated.storyType.long}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -636,7 +635,7 @@ function DashboardPage() {
                       {loading ? (
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Generating...</span>
+                          <span>{translated.generateLoad}</span>
                         </div>
                       ) : (
                         translated.generateStoryButton
@@ -676,7 +675,7 @@ function DashboardPage() {
                                           onClick={handleAddHoveredWord}
                                           className="mt-2 w-full text-xs bg-purple-600 hover:bg-purple-700 text-white"
                                         >
-                                          Add to List
+                                          {translated.wordLists.addHovered}
                                         </Button>
                                         <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rotate-45 z-[-1]" />
                                       </div>
@@ -697,7 +696,7 @@ function DashboardPage() {
                                 >
                                   <div className="flex items-center gap-2">
                                     <Mic className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                                    <span>Read Out Loud</span>
+                                    <span>{translated.readStory}</span>
                                   </div>
                                 </Button>
                                 <Button
@@ -707,7 +706,7 @@ function DashboardPage() {
                                 >
                                   <div className="flex items-center gap-2">
                                     <Bookmark className="h-5 w-5" />
-                                    <span>Save Story</span>
+                                    <span>S{translated.saveStory}</span>
                                   </div>
                                 </Button>
                               </div>
@@ -751,7 +750,7 @@ function DashboardPage() {
                           {loading ? (
                             <div className="flex items-center gap-2">
                               <Loader2 className="h-4 w-4 animate-spin" />
-                              <span>Generating...</span>
+                              <span>{translated.generateLoad}</span>
                             </div>
                           ) : (
                             translated.generateStoryButton
@@ -772,7 +771,7 @@ function DashboardPage() {
                           className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
                         >
                           <X className="h-4 w-4 mr-2" />
-                          Clear Story
+                          {translated.clearStory}
                         </Button>
                       </div>
                     </div>
@@ -799,7 +798,7 @@ function DashboardPage() {
                 <div className="space-y-4">
                   {savedStories.length === 0 ? (
                     <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                      No saved stories yet. Generate and save some stories to see them here!
+                      {translated.saveStoryDescription}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -855,8 +854,10 @@ function DashboardPage() {
 }
 
 function DashboardPageWrapper() {
+  const { language, setLanguage } = useLanguage();
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>{dashBoardTranslations[language].loading}</div>}>
       <DashboardPage />
     </Suspense>
   );
