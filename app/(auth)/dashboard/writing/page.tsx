@@ -1,73 +1,167 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/story-generator/header";
 import { useLanguage } from "@/lang/LanguageContext";
+import { useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import router from "next/router";
+import ReactMarkdown from "react-markdown";
+import Translations from "@/lang/Dashboard/writing";
 
-export default function ChatPage() {
-  const [messages, setMessages] = useState<{ role: "user" | "ai"; content: string }[]>([]);
-  const [input, setInput] = useState("");
-  const { language } = useLanguage();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+function useSetLanguageFromURL() {
+  const { language, setLanguage } = useLanguage();
+  const searchParams = useSearchParams();
+  const langFromURL = searchParams?.get("lang");
+  const [languageReady, setLanguageReady] = useState(false);
 
+  // If language is in URL, update the language context.
   useEffect(() => {
-    // Scroll to bottom when new messages are added
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (langFromURL && ["en", "es", "zh"].includes(langFromURL)) {
+      setLanguage(langFromURL as "en" | "es" | "zh");
+    }
+  }, [langFromURL, setLanguage]);
 
+  // Markes language as "ready" once language matches URL.
+  useEffect(() => {
+    if (langFromURL && language === langFromURL) {
+      setLanguageReady(true);
+    }
+  }, [langFromURL, language]);
+
+  // Prevents all actions until language is "ready".
+  useEffect(() => {
+    if (!languageReady) return;
+
+    const logUserLanguage = async () => {
+      // Gets the current user session.
+      const sessionResult = await supabase.auth.getSession();
+      const session = sessionResult.data.session;
+
+      if (!session) {
+        console.warn("No session found.");
+        return;
+      }
+
+      // Extracts user's information.
+      const user = session.user;
+      
+      // Inserts user's preferences into Supabase table.
+      const { error: insertError } = await supabase
+        .from("user_preferences")
+        .insert({
+          uid: user.id,
+          email: user.email,
+          preferred_lang: language,
+        })
+        .select();
+      
+      // If row already exists, update it.
+      if (insertError) {
+        if (insertError.code === "23505" || insertError.message.includes("duplicate key")) {
+          console.warn("Insert failed: row exists. Updating instead.");
+
+          const { error: updateError } = await supabase
+            .from("user_preferences")
+            .update({
+              preferred_lang: language,
+            })
+            .eq("uid", user.id);
+
+          if (updateError) {
+            console.error("User preferences update failed:", updateError.message);
+          } else {
+            console.log("User preferences updated successfully!");
+          }
+        } else {
+          console.error("User preferences insert failed:", insertError.message);
+        }
+      } else {
+        console.log("User preferences inserted successfully!");
+      }
+    };
+    // Runs when language changes
+    logUserLanguage();
+  }, [languageReady]);
+
+  return languageReady;
+};
+
+export default function SentencePage() {
+  const [input, setInput] = useState("");
+  const [reply, setReply] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { language } = useLanguage();
+  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
+  useEffect(() => {
+    const getPracticeLang = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+      if (!session) {
+        router.push("/login");
+        return;
+      }
+
+      const { data } = await supabase
+        .from("user_preferences")
+        .select("practice_lang")
+        .eq("uid", session.user.id)
+        .single();
+
+      if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
+        setPracticeLang(data.practice_lang);
+      }
+    };
+    getPracticeLang();
+  }, []);
+    
   const handleSend = async () => {
+
     if (!input.trim()) return;
-    const userMessage = { role: "user" as const, content: input };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    setLoading(true);
+    setReply(""); // Clear old reply
+    try {
+      const response = await fetch("/api/writing_prac", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input, practiceLang, language }),
+      });
 
-    // Send to backend (replace with your endpoint)
-    const response = await fetch("/api/chat-box", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input, language }),
-    });
-
-    const data = await response.json();
-    console.log(response);
-    const aiReply = { role: "ai" as const, content: data.reply };
-    setMessages((prev) => [...prev, aiReply]);
+      const data = await response.json();
+      setReply(data.reply || "No feedback received.");
+    } catch (err) {
+      console.error(err);
+      setReply("Error getting feedback. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 p-6 max-w-4xl mx-auto w-full flex flex-col">
-        <h1 className="text-2xl font-semibold mb-6 text-center">Language Practice Chat</h1>
+      <main className="flex-1 p-6 max-w-2xl mx-auto w-full flex flex-col items-center">
+        <h1 className="text-2xl font-semibold mb-6 text-center">{Translations[language].title}</h1>
 
-        <div className="flex-1 overflow-y-auto bg-white rounded-lg p-4 shadow border space-y-4">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`max-w-[80%] p-3 rounded-lg ${
-                msg.role === "user"
-                  ? "self-end bg-purple-100 text-right"
-                  : "self-start bg-gray-100"
-              }`}
-            >
-              <p className="text-gray-800">{msg.content}</p>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={`${Translations[language].prompt} ${practiceLang}...`}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          className="mb-4"
+        />
 
-        <div className="mt-4 flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={`Type your message in ${language}...`}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1"
-          />
-          <Button onClick={handleSend}>Send</Button>
+        <Button onClick={handleSend} disabled={loading}>
+          {loading ? "Checking..." : "Submit"}
+        </Button>
+
+        {reply && (
+          <div className="mt-6 w-full bg-purple-100 text-purple-900 p-4 rounded-xl shadow prose">
+          <ReactMarkdown>{reply}</ReactMarkdown>
         </div>
+        )}
       </main>
     </div>
   );
