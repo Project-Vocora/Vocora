@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import ReactMarkdown from "react-markdown";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  const { message, language, history } = req.body;
+  const { message, language, practiceLang, history } = req.body;
 
   if (!message || !language) {
     return res.status(400).json({ error: "Missing message or language" });
@@ -26,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           role: "user",
           parts: [
             {
-              text: `You are a friendly language tutor. You are texting someone learning ${language} and helping them practice. Keep replies short and simple and teach them as you go. Respond in ${language} the old chat history is provided for context:\n\n${message}`,
+              text: `You are a friendly language tutor. You are texting someone learning ${practiceLang} and helping them learn as you both text. Keep replies short and simple and teach them as you go, treat them like an intermediate novice. Respond in ${practiceLang} the old chat history is provided for context:\n\n${message}`,
             },
           ],
         },
