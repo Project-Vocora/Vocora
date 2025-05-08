@@ -6,16 +6,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { MessageSquare, X, Send } from "lucide-react"
 import { useLanguage } from "@/lang/LanguageContext"
-import chatTranslations from "@/lang/chatbox"
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import Translations from "@/lang/chatbox"
+import ReactMarkdown from "react-markdown";
+import router from "next/router"
 
 export function SupportChat() {
+  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
+  useEffect(() => {
+    const getPracticeLang = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+      if (!session) {
+        router.push("/login");
+        return;
+      }
+
+      const { data } = await supabase
+        .from("user_preferences")
+        .select("practice_lang")
+        .eq("uid", session.user.id)
+        .single();
+
+      if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
+        setPracticeLang(data.practice_lang);
+      }
+    };
+    getPracticeLang();
+  }, []);
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput]= useState("")
   const [messages, setMessages]= useState<{ role: "user" | "ai"; content: string }[]>([])
   const { language } = useLanguage()
-  const translated = chatTranslations[language]
+  const translated = Translations[language]
 
   const messagesEndRef= useRef<HTMLDivElement> (null)
   useEffect(() => {
@@ -32,7 +56,7 @@ export function SupportChat() {
       const response = await fetch("/api/chat-box", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, language }),
+        body: JSON.stringify({ message: input, language, practiceLang, history: messages }),
       })
       const data = await response.json()
       const aiReply = { role: "ai" as const, content: data.reply }
@@ -70,7 +94,7 @@ export function SupportChat() {
                     height={50}
                     className="object-contain"
                   />
-                  Practice With Vocora!
+                  {translated.title}
                 </CardTitle>
                 <Button
                   variant="ghost"
@@ -87,7 +111,7 @@ export function SupportChat() {
                 <div className="h-64 overflow-y-auto space-y-4">
                   {messages.length === 0 ? (
                     <div className="text-center text-slate-500 dark:text-slate-400 py-8">
-                      No messages yet. Start a conversation!
+                      {translated.empty}
                     </div>
                   ) : (
                     messages.map((msg, index) => (
@@ -113,7 +137,11 @@ export function SupportChat() {
                               : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                           }`}
                         >
-                          {msg.content}
+                          {msg.role === "ai" ? (
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            ) : (
+                            msg.content
+                          )}
                         </div>
                       </div>
                     ))
@@ -128,7 +156,7 @@ export function SupportChat() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleSend()
                     }}
-                    placeholder={`Type your message in ${language}...`}
+                    placeholder={`${translated.prompt} ${practiceLang}...`}
                     className="flex-1"
                   />
                   <Button
