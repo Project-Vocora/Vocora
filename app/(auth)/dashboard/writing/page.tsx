@@ -10,7 +10,10 @@ import { supabase } from "@/lib/supabase";
 import router from "next/router";
 import ReactMarkdown from "react-markdown";
 import Translations from "@/lang/Dashboard/writing";
-
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { List, MessageSquare, Plus, X } from "lucide-react";
+import { Navbar } from "@/components/dashboard/navbar";
 function useSetLanguageFromURL() {
   const { language, setLanguage } = useLanguage();
   const searchParams = useSearchParams();
@@ -141,9 +144,19 @@ export default function SentencePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+    <Navbar/>
+
+    <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <MessageSquare className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+            {Translations[language].title}
+          </CardTitle>
+        </div>
+      </CardHeader>
+
       <main className="flex-1 p-6 max-w-2xl mx-auto w-full flex flex-col items-center">
-        <h1 className="text-2xl font-semibold mb-2 text-center">{Translations[language].title}</h1>
         <h2 className="text-base font-normal mb-6 text-center">{Translations[language].subheading}</h2>
 
         <Input
@@ -164,6 +177,8 @@ export default function SentencePage() {
         </div>
         )}
       </main>
+    
+    </Card>
     </div>
   );
 }
