@@ -315,6 +315,10 @@ function DashboardPage() {
     toast.success("Story deleted");
   };
 
+  const handleStoryLengthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStoryLength(e.target.value as "short" | "medium" | "long");
+  };
+
   useEffect(() => {
     const fetchLang = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
