@@ -442,7 +442,7 @@ function DashboardPage() {
 
           {/* Main Features Grid */}
           <section>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid gap-6">
               {/* <Link href="/dashboard/speaking">
                 <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
                   <CardContent className="p-6">
@@ -491,7 +491,7 @@ function DashboardPage() {
                 </Card>
               </Link>
 
-              <Link href="/dashboard/quiz">
+              {/* <Link href="/dashboard/quiz">
                 <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -505,7 +505,7 @@ function DashboardPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
+              </Link> */}
             </div>
           </section>
 
