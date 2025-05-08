@@ -1,9 +1,5 @@
 "use client";
 
-import { read } from "fs";
-import wordLists from "./Dashboard/wordLists";
-import { loadBindings } from "next/dist/build/swc";
-
 const dashBoardTranslations = {
     en: {
         navBar: {
@@ -52,6 +48,7 @@ const dashBoardTranslations = {
         generateLoad: "Generating...",
         readStory: "Read Out Loud",
         saveStory: "Save Story",
+        savedStory: "Story Saved",
         clearStory: "Clear Story",
         saveStoryDescription: "No saved stories yet. Generate and save some stories to see them here!",
         
@@ -117,6 +114,7 @@ const dashBoardTranslations = {
         generateLoad: "Generando...",
         readStory: "Leer en voz alta",
         saveStory: "Guardar historia",
+        savedStory: "Historia guardada",
         clearStory: "Borrar historia",
         saveStoryDescription: "No hay historias guardadas aún. ¡Genera y guarda algunas historias para verlas aquí!",
 
@@ -191,6 +189,7 @@ const dashBoardTranslations = {
         generateLoad: "生成中...",
         readStory: "大声朗读",
         saveStory: "保存故事",
+        savedStory: "故事已保存",
         clearStory: "清除故事",
         saveStoryDescription: "还没有保存的故事。生成并保存一些故事以在这里查看它们！",
 

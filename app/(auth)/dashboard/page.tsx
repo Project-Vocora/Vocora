@@ -119,7 +119,9 @@ function DashboardPage() {
   const { story, setStory, imageUrl, setImageUrl, loading,generateStory, generateImageFromStory,} = useStoryGenerator();
   const { audioSrc, convertToSpeech, setAudioSrc } = useAudio();
   const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord,} = useHoverWord(practiceLang, words, setWords, story || "", language);
-  
+  const [isStorySaved, setIsStorySaved] = useState(false);
+  const [savingMessage, setSavingMessage] = useState("");
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -127,6 +129,10 @@ function DashboardPage() {
     };
     checkAuth();
   }, [router]);
+
+  useEffect(() => {
+    setSavingMessage(translated.saveStory);
+  }, [language]);
 
   const applyHighlighting = (text: string) => {
     let highlighted = text;
@@ -188,59 +194,79 @@ function DashboardPage() {
   };
 
   const handleSaveStory = async () => {
+    console.log("handleSaveStory called"); 
     if (!story || !imageUrl) {
-      toast.error("No story to save");
+      toast.error("No story or image to save");
       return;
     }
-
+  
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
-    const loadingToast = toast.loading("Saving story...");
-
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const base64Image = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
-      const timestamp = new Date().toISOString();
-      const title = `Story ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
-
-      const { error } = await supabase
-        .from("saved_stories")
-        .insert([{
-          uid: user.id,
-          title,
-          story,
-          image: base64Image,
-          language,
-          created_at: timestamp,
-          selected_words: Array.from(selectedWords),
-        }]);
-
-      if (error) throw error;
-
-      toast.dismiss(loadingToast);
-      toast.success("Story saved");
-
-      const { data: newStories } = await supabase
-        .from("saved_stories")
-        .select("*")
-        .eq("uid", user.id)
-        .order("created_at", { ascending: false });
-
-      if (newStories) setSavedStories(newStories);
-    } catch (err) {
-      console.error(err);
-      toast.dismiss(loadingToast);
-      toast.error("Failed to save story");
+   
+    if (isStorySaved) {
+      // Unsaving the story
+      try {
+        const { error: deleteError } = await supabase
+          .from("user_stories")
+          .delete()
+          .eq("uid", user.id)
+          .eq("story", story);
+  
+        if (deleteError) throw deleteError;
+  
+        setIsStorySaved(false);
+        setSavingMessage(translated.saveStory);
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      try {
+        // Check if the image URL is a base64 string
+        let base64Image = imageUrl;
+        if (!base64Image.startsWith('data:image')) {
+          // Convert image URL to base64
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          
+          base64Image = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (reader.result === null) {
+                reject(new Error("Failed to read image as base64"));
+              } else if (typeof reader.result === 'string') {
+                resolve(reader.result);
+              } else {
+                reject(new Error("Failed to read image as base64"));
+              }
+            };
+            reader.onerror = () => reject(new Error("Error reading image file"));
+            reader.readAsDataURL(blob);
+          });
+        }
+    
+        // Save the story and image to the database
+        const { error: saveError } = await supabase
+          .from("user_stories")
+          .upsert([
+            {
+              uid: user.id,
+              story: story,
+              image: base64Image,
+              language: practiceLang,
+            },
+          ]);
+    
+        if (saveError) throw saveError;
+        
+        setIsStorySaved(true);
+        setSavingMessage(translated.savedStory);
+    
+      }catch (err) {
+        console.error(err);
+      }
     }
   };
+  
 
   const handleDeleteStory = async (id: number) => {
     const { error } = await supabase.from("saved_stories").delete().eq("id", id);
@@ -274,7 +300,7 @@ function DashboardPage() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("saved_stories")
+        .from("user_stories")
         .select("*")
         .eq("uid", user.id)
         .order("created_at", { ascending: false });
@@ -699,16 +725,20 @@ function DashboardPage() {
                                     <span>{translated.readStory}</span>
                                   </div>
                                 </Button>
-                                <Button
-                                  onClick={handleSaveStory}
-                                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-                                  variant="default"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Bookmark className="h-5 w-5" />
-                                    <span>S{translated.saveStory}</span>
-                                  </div>
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    onClick={handleSaveStory}
+                                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                                    variant="default"
+                                  >
+                                    {isStorySaved ? (
+                                      <Bookmark className="h-5 w-5 fill-white" />
+                                    ) : (
+                                      <Bookmark className="h-5 w-5 text-purple-400" />
+                                    )}
+                                    <span className="ml-2">{savingMessage}</span>
+                                  </Button>
+                                </div>
                               </div>
                               {audioSrc && (
                                 <audio controls className="w-full">
