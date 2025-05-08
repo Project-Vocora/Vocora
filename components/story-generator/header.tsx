@@ -7,14 +7,14 @@ import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { PracticeTab } from "./PracticeTab"
 import { VocabTab} from "./vocabTab";
-import { SettingsTab } from "./settingsTab"
+// import { SettingsTab } from "./settingsTab"
 import { useLanguage } from "@/lang/LanguageContext"; // Import the useLanguage hook
 import headerTranslations from "@/lang/header"; // Import the login translations
-import settingsTranslations from '@/lang/SettingsTab';
+// import settingsTranslations from '@/lang/SettingsTab';
 
 export function Header() {
   const [showPractice, setShowPractice] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  // const [showSettings, setShowSettings] = useState(false);
   const [showVocab, setShowVocab] = useState(false);
   const router = useRouter();
   const { language } = useLanguage();
@@ -39,17 +39,17 @@ export function Header() {
   const togglePractice = () => {
     setShowPractice((prev) => !prev);
     setShowVocab(false);
-    setShowSettings(false);
+    // setShowSettings(false);
   };
   
   const toggleVocab = () => {
     setShowVocab((prev) => !prev);
     setShowPractice(false);
-    setShowSettings(false);
+    // setShowSettings(false);
   };
   
   const toggleSettings = () => {
-    setShowSettings((prev) => !prev);
+    // setShowSettings((prev) => !prev);
     setShowPractice(false);
     setShowVocab(false);
   };
@@ -60,7 +60,7 @@ export function Header() {
       if (event.key === "Escape") {
         setShowPractice(false);
         setShowVocab(false);
-        setShowSettings(false);
+        // setShowSettings(false);
       }
     };
 
@@ -108,7 +108,7 @@ export function Header() {
           </div>
 
           {/* Settings Button */}
-          <div className="relative inline-block">
+          {/* <div className="relative inline-block">
             <Button onClick={toggleSettings}>
               {settingsTranslations[language].title}
             </Button>
@@ -118,7 +118,7 @@ export function Header() {
                 <SettingsTab onClose={() => setShowSettings(false)} />
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Logout Button */}
           <Link href="/">
