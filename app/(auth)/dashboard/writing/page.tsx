@@ -143,7 +143,8 @@ export default function SentencePage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 p-6 max-w-2xl mx-auto w-full flex flex-col items-center">
-        <h1 className="text-2xl font-semibold mb-6 text-center">{Translations[language].title}</h1>
+        <h1 className="text-2xl font-semibold mb-2 text-center">{Translations[language].title}</h1>
+        <h2 className="text-base font-normal mb-6 text-center">{Translations[language].subheading}</h2>
 
         <Input
           value={input}
