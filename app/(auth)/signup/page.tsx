@@ -124,7 +124,8 @@ export default function SignUpPage() {
       if (signUpError) throw new Error(signUpError.message);
 
       console.log("Sign-up successful.", signUpData);
-      router.push(`/success`);
+      alert("Please verify your email!")
+      router.push(`/login`);
     } catch (error) {
       setError(error instanceof Error ? error.message : signupTranslations[language].unexpectedError);
     } finally {
