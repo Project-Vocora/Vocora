@@ -121,7 +121,9 @@ function DashboardPage() {
   const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord,} = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [isStorySaved, setIsStorySaved] = useState(false);
   const [savingMessage, setSavingMessage] = useState("");
-
+  const [selectedStory, setSelectedStory] = useState<any | null>(null);
+  const [isStorySelected, setIsStorySelected] = useState<boolean>(false);
+  
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -133,6 +135,28 @@ function DashboardPage() {
   useEffect(() => {
     setSavingMessage(translated.saveStory);
   }, [language]);
+
+  useEffect(() => {
+    const fetchSavedStories = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+  
+      const { data, error } = await supabase
+        .from("user_stories")
+        .select("*")
+        .eq("uid", user.id)
+        .order("created_at", { ascending: false });
+  
+      if (!error && data) {
+        setSavedStories(data);  // Update the state with the fetched stories
+      } else {
+        console.error("Error fetching saved stories:", error);
+      }
+    };
+  
+    fetchSavedStories();  // Call the function to fetch saved stories
+  }, [router]);  // This effect runs whenever the router (and thus the session) changes
+  
 
   const applyHighlighting = (text: string) => {
     let highlighted = text;
@@ -192,6 +216,19 @@ function DashboardPage() {
     });
     toast.success("Deleted word");
   };
+  const fetchSavedStories = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("user_stories")
+      .select("*")
+      .eq("uid", user.id)
+      .eq("language", practiceLang)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) setSavedStories(data);
+  };
 
   const handleSaveStory = async () => {
     console.log("handleSaveStory called"); 
@@ -216,6 +253,8 @@ function DashboardPage() {
   
         setIsStorySaved(false);
         setSavingMessage(translated.saveStory);
+
+        fetchSavedStories();
       } catch (err) {
         console.error(err);
       }
@@ -253,6 +292,7 @@ function DashboardPage() {
               story: story,
               image: base64Image,
               language: practiceLang,
+              created_at: new Date().toISOString(),
             },
           ]);
     
@@ -260,13 +300,13 @@ function DashboardPage() {
         
         setIsStorySaved(true);
         setSavingMessage(translated.savedStory);
-    
+
+        fetchSavedStories();
       }catch (err) {
         console.error(err);
       }
     }
-  };
-  
+  };  
 
   const handleDeleteStory = async (id: number) => {
     const { error } = await supabase.from("saved_stories").delete().eq("id", id);
@@ -293,19 +333,6 @@ function DashboardPage() {
       if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
         setPracticeLang(data.practice_lang);
       }
-    };
-
-    const fetchSavedStories = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("user_stories")
-        .select("*")
-        .eq("uid", user.id)
-        .order("created_at", { ascending: false });
-
-      if (!error && data) setSavedStories(data);
     };
 
     fetchLang();
@@ -825,52 +852,74 @@ function DashboardPage() {
                 <CardDescription>{translated.extras.option2Description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {savedStories.length === 0 ? (
-                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                      {translated.saveStoryDescription}
+
+              <div className="flex">
+                {/* Left Side: */}
+                <div className="w-1/3 border-r border-slate-200 dark:border-slate-700 pr-4">
+                  <div className="space-y-4">
+                    {savedStories.length === 0 ? (
+                      <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                        {translated.saveStoryDescription}
+                      </div>
+                    ) : (
+                      savedStories.map((savedStory) => (
+                        <div
+                          key={savedStory.id}
+                          onClick={() => {
+                            if (selectedStory?.id === savedStory.id) {
+                              // Deselect the story
+                              setSelectedStory(null);
+                              setIsStorySelected(false);
+                            } else {
+                              // Select the new story
+                              setSelectedStory(savedStory);
+                              setIsStorySelected(true);
+                            }
+                          }}
+                          className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
+                        >
+                          <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
+                            {savedStory.story.split(".")[0]}.
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {new Date(savedStory.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Side */}
+                <div className="w-2/3 pl-4">
+                  {selectedStory ? (
+                    <div>
+                      <div className="flex-1">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {selectedStory.story}
+                        </p>
+                      </div>
+                      {selectedStory.image && (
+                        <div className="mt-4 flex justify-center">
+                          <img
+                            src={selectedStory.image}
+                            alt={selectedStory.title || "Story Image"}
+                            className="w-1/2 h-auto object-cover rounded-lg shadow-md"
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {savedStories.map((savedStory) => (
-                        <div key={savedStory.id} className="relative group">
-                          <Card className="overflow-hidden border-slate-200 dark:border-slate-700">
-                            <CardContent className="p-0">
-                              <div className="relative aspect-video">
-                                <img
-                                  src={savedStory.image}
-                                  alt={savedStory.title}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-4">
-                                  <h3 className="text-white font-semibold mb-1">{savedStory.title}</h3>
-                                  <p className="text-white/80 text-sm">
-                                    {new Date(savedStory.created_at).toLocaleDateString()}
-                                  </p>
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={() => handleDeleteStory(savedStory.id)}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      ))}
+                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                      {translated.selectStoryMessage}
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </section>
-            
-          <SupportChat />
-
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+       <SupportChat />
         </div>
       </main>
 

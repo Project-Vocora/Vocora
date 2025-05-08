@@ -49,8 +49,10 @@ const dashBoardTranslations = {
         readStory: "Read Out Loud",
         saveStory: "Save Story",
         savedStory: "Story Saved",
+        savedTitle: "Saved Stories",
         clearStory: "Clear Story",
         saveStoryDescription: "No saved stories yet. Generate and save some stories to see them here!",
+        selectStoryMessage: "Please select a story to view more!",
         
         extras: {
             option1: "Words Lists",
@@ -115,8 +117,10 @@ const dashBoardTranslations = {
         readStory: "Leer en voz alta",
         saveStory: "Guardar historia",
         savedStory: "Historia guardada",
+        savedTitle: "Historias guardadas",
         clearStory: "Borrar historia",
         saveStoryDescription: "No hay historias guardadas aún. ¡Genera y guarda algunas historias para verlas aquí!",
+        selectStoryMessage: "¡Por favor selecciona una historia para ver más!",
 
         storyType: {
             title: "Longitud de la historia:",
@@ -190,8 +194,10 @@ const dashBoardTranslations = {
         readStory: "大声朗读",
         saveStory: "保存故事",
         savedStory: "故事已保存",
+        savedTitle: "已保存的故事",
         clearStory: "清除故事",
         saveStoryDescription: "还没有保存的故事。生成并保存一些故事以在这里查看它们！",
+        selectStoryMessage: "请选择一个故事以查看更多内容！",
 
         storyType: {
             title: "故事长度：",
