@@ -23,6 +23,8 @@ import { useVocabWords } from "@/hooks/useVocabWords";
 import { useStoryGenerator } from "@/hooks/useStoryGenerator";
 import { useAudio } from "@/hooks/useAudio";
 import { useHoverWord } from "@/hooks/useHoverDefinitions";
+import ReactMarkdown from "react-markdown";
+import Translations from "@/lang/Dashboard/writing";
 
 function useSetLanguageFromURL() {
   const { language, setLanguage } = useLanguage();
@@ -116,13 +118,20 @@ function DashboardPage() {
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
   const [savedStories, setSavedStories] = useState<any[]>([]);
   const { words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
-  const { story, setStory, imageUrl, setImageUrl, loading,generateStory, generateImageFromStory,} = useStoryGenerator();
+  const { story, setStory, imageUrl, setImageUrl, loading: storyLoading, generateStory, generateImageFromStory } = useStoryGenerator();
   const { audioSrc, convertToSpeech, setAudioSrc } = useAudio();
-  const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord,} = useHoverWord(practiceLang, words, setWords, story || "", language);
+  const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord } = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [isStorySaved, setIsStorySaved] = useState(false);
   const [savingMessage, setSavingMessage] = useState("");
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
   const [isStorySelected, setIsStorySelected] = useState<boolean>(false);
+  const [input, setInput] = useState("");
+  const [reply, setReply] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showWriting, setShowWriting] = useState(false);
+  const [showWordList, setShowWordList] = useState(false);
+  const [showStoryGenerator, setShowStoryGenerator] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -396,6 +405,27 @@ function DashboardPage() {
     }
   };
 
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+    setReply(""); // Clear old reply
+    try {
+      const response = await fetch("/api/writing_prac", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input, practiceLang, language }),
+      });
+
+      const data = await response.json();
+      setReply(data.reply || "No feedback received.");
+    } catch (err) {
+      console.error(err);
+      setReply("Error getting feedback. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!languageReady) {
     return null;
   }
@@ -416,399 +446,371 @@ function DashboardPage() {
                       <p className="text-purple-100 text-lg">{translated.continue}</p>
                     </div>
 
-                    <Select value={practiceLang} onValueChange={handlePracticeLangChange}>
-                      <SelectTrigger className="w-full md:w-[180px] bg-white/20 border-white/30 text-white">
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
-                        <SelectItem value="zh">中文</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* <div className="mt-6">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="font-medium">{translated.progress}</span>
-                      <span className="font-medium">{progress}%</span>
+                    <div className="flex flex-col items-end gap-4">
+                      <Select value={practiceLang} onValueChange={handlePracticeLangChange}>
+                        <SelectTrigger className="w-full md:w-[180px] bg-white/20 border-white/30 text-white">
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">Español</SelectItem>
+                          <SelectItem value="zh">中文</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Progress value={progress} className="h-2.5 bg-white/20" />
-                  </div> */}
+                  </div>
+                </div>
+
+                <div className="border-t border-purple-200 dark:border-purple-800">
+                  <div className="bg-white dark:bg-slate-800 p-6">
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        size="sm" 
+                        className={`${
+                          showWordList 
+                            ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                            : "bg-white hover:bg-gray-100 text-black border-2 border-purple-200"
+                        } shadow-md`}
+                        onClick={() => {
+                          setShowWordList(!showWordList);
+                          setShowStoryGenerator(false);
+                          setShowWriting(false);
+                          setShowSaved(false);
+                        }}
+                      >
+                        <List className="h-4 w-4 mr-2" />
+                        {translated.extras.option1}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className={`${
+                          showStoryGenerator 
+                            ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                            : "bg-white hover:bg-gray-100 text-black border-2 border-purple-200"
+                        } shadow-md`}
+                        onClick={() => {
+                          setShowStoryGenerator(!showStoryGenerator);
+                          setShowWordList(false);
+                          setShowWriting(false);
+                          setShowSaved(false);
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        {translated.generateStoryTitle}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className={`${
+                          showWriting 
+                            ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                            : "bg-white hover:bg-gray-100 text-black border-2 border-purple-200"
+                        } shadow-md`}
+                        onClick={() => {
+                          setShowWriting(!showWriting);
+                          setShowWordList(false);
+                          setShowStoryGenerator(false);
+                          setShowSaved(false);
+                        }}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        {translated.writing}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className={`${
+                          showSaved 
+                            ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                            : "bg-white hover:bg-gray-100 text-black border-2 border-purple-200"
+                        } shadow-md`}
+                        onClick={() => {
+                          setShowSaved(!showSaved);
+                          setShowWordList(false);
+                          setShowStoryGenerator(false);
+                          setShowWriting(false);
+                        }}
+                      >
+                        <Bookmark className="h-4 w-4 mr-2" />
+                        {translated.extras.option2}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </section>
 
           {/* Main Features Grid */}
-          <section>
-            <div className="grid gap-6">
-              {/* <Link href="/dashboard/speaking">
-                <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-100 rounded-xl dark:bg-purple-900">
-                        <Mic className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+          <div className="space-y-8">
+            {!showWriting && !showWordList && !showStoryGenerator && !showSaved && (
+              <section>
+                <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
+                  <CardHeader>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Lightbulb className="h-6 w-6 text-purple-500" />
+                      Welcome to Vocora
+                    </CardTitle>
+                    <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
+                      Click on any of the buttons above to get started with your language learning journey!
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-400">Quick Start Guide</h3>
+                        <ul className="space-y-2 text-slate-600 dark:text-slate-400">
+                          <li className="flex items-center gap-2">
+                            <List className="h-4 w-4 text-purple-500" />
+                            Build your vocabulary with Word Lists
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-purple-500" />
+                            Create stories using your vocabulary
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-purple-500" />
+                            Practice writing and get feedback
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Bookmark className="h-4 w-4 text-purple-500" />
+                            Save your progress and favorite content
+                          </li>
+                        </ul>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-semibold mb-1">{translated.speaking}</h3>
-                        <p className="text-slate-600 dark:text-slate-400">{translated.practice}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link> */}
-
-              {/* <Link href="/dashboard/reading">
-                <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-100 rounded-xl dark:bg-purple-900">
-                        <BookOpen className="h-7 w-7 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold mb-1">{translated.reading}</h3>
-                        <p className="text-slate-600 dark:text-slate-400">{translated.practice}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link> */}
-
-              <Link href="/dashboard/writing">
-                <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-100 rounded-xl dark:bg-purple-900">
-                        <MessageSquare className="h-7 w-7 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold mb-1">{translated.writing}</h3>
-                        <p className="text-slate-600 dark:text-slate-400">{translated.practice}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              {/* <Link href="/dashboard/quiz">
-                <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-purple-100 dark:border-purple-800 dark:bg-slate-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-100 rounded-xl dark:bg-purple-900">
-                        <Lightbulb className="h-7 w-7 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold mb-1">{translated.quiz}</h3>
-                        <p className="text-slate-600 dark:text-slate-400">{translated.practice}</p>
+                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6">
+                        <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-400 mb-4">Tips</h3>
+                        <ul className="space-y-2 text-slate-600 dark:text-slate-400">
+                          <li>• Start by adding words to your vocabulary list</li>
+                          <li>• Use the story generator to practice using your words</li>
+                          <li>• Get writing feedback to improve your skills</li>
+                          <li>• Save your favorite stories and practice materials</li>
+                        </ul>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </Link> */}
-            </div>
-          </section>
+              </section>
+            )}
 
-          {/* Word List Section */}
-          <section>
-            <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <List className="h-5 w-5 text-purple-500" />
-                    {translated.extras.option1}
-                  </CardTitle>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    {words.length} {words.length === 1 ? translated.wordLists.word : translated.wordLists.words}
-                  </div>
-                </div>
-                <CardDescription>{translated.extras.option1Description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Input
-                        type="text"
-                        placeholder={storyTranslated.typeWord}
-                        value={newWord}
-                        onChange={(e) => setNewWord(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleAddWord();
-                          }
-                        }}
-                        className={`${
-                          newWord.trim() !== "" && words.some(word => word.toLowerCase() === newWord.trim().toLowerCase())
-                            ? "border-red-500 focus-visible:ring-red-500"
-                            : ""
-                        }`}
-                      />
-                      {newWord.trim() !== "" && words.some(word => word.toLowerCase() === newWord.trim().toLowerCase()) && (
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 text-sm">
-                          {translated.wordLists.error}
+            {showWriting && (
+              <section>
+                <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <MessageSquare className="h-6 w-6 text-purple-500" />
+                      {translated.writing}
+                    </CardTitle>
+                    <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
+                      {Translations[language].subheading}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
+                        <Input
+                          value={input}
+                          onChange={(e) => setInput(e.target.value)}
+                          placeholder={`${Translations[language].prompt} ${practiceLang}...`}
+                          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                          className="mb-4"
+                        />
+                        <Button onClick={handleSend} disabled={loading} className="w-full">
+                          {loading ? "Checking..." : "Submit"}
+                        </Button>
+                      </div>
+
+                      {reply && (
+                        <div className="mt-6 w-full bg-purple-100 text-purple-900 p-4 rounded-xl shadow prose">
+                          <ReactMarkdown>{reply}</ReactMarkdown>
                         </div>
                       )}
                     </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={handleAddWord}
-                            className="bg-purple-600 hover:bg-purple-700"
-                            disabled={newWord.trim() !== "" && words.some(word => word.toLowerCase() === newWord.trim().toLowerCase())}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{translated.wordLists.add}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {words.map((word) => (
-                      <div key={word} className="relative group">
-                        <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 px-3 py-1.5">
-                          <span className="text-slate-700 dark:text-slate-300">{word}</span>
+                  </CardContent>
+                </Card>
+              </section>
+            )}
+
+            {showWordList && (
+              <section>
+                <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <List className="h-5 w-5 text-purple-500" />
+                        {translated.extras.option1}
+                      </CardTitle>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">
+                        {words.length} {words.length === 1 ? translated.wordLists.word : translated.wordLists.words}
+                      </div>
+                    </div>
+                    <CardDescription>{translated.extras.option1Description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            type="text"
+                            placeholder={storyTranslated.typeWord}
+                            value={newWord}
+                            onChange={(e) => setNewWord(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddWord();
+                              }
+                            }}
+                            className={`${
+                              newWord.trim() !== "" && words.some(word => word.toLowerCase() === newWord.trim().toLowerCase())
+                                ? "border-red-500 focus-visible:ring-red-500"
+                                : ""
+                            }`}
+                          />
+                          {newWord.trim() !== "" && words.some(word => word.toLowerCase() === newWord.trim().toLowerCase()) && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 text-sm">
+                              {translated.wordLists.error}
+                            </div>
+                          )}
+                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                onClick={handleAddWord}
+                                className="bg-purple-600 hover:bg-purple-700"
+                                disabled={newWord.trim() !== "" && words.some(word => word.toLowerCase() === newWord.trim().toLowerCase())}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{translated.wordLists.add}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {words.map((word) => (
+                          <div key={word} className="relative group">
+                            <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 px-3 py-1.5">
+                              <span className="text-slate-700 dark:text-slate-300">{word}</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                      onClick={() => handleDeleteWord(word)}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{translated.wordLists.delete}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </div>
+                        ))}
+                        {words.length > 0 && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
                                   variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                                  onClick={() => handleDeleteWord(word)}
+                                  size="sm"
+                                  onClick={handleDeleteAllWords}
+                                  className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
                                 >
-                                  <X className="h-3 w-3" />
+                                  <X className="h-4 w-4 mr-1" />
+                                  {translated.wordLists.deleteAll}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{translated.wordLists.delete}</p>
+                                <p>{translated.wordLists.deleteAllWords}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                        </div>
-                      </div>
-                    ))}
-                    {words.length > 0 && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleDeleteAllWords}
-                              className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
-                            >
-                              <X className="h-4 w-4 mr-1" />
-                              {translated.wordLists.deleteAll}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{translated.wordLists.deleteAllWords}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </div>
-                  {words.length === 0 && (
-                    <div className="text-center py-4 text-slate-500 dark:text-slate-400">
-                      {translated.wordLists.description}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Story Generator Section */}
-          <section>
-            <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 text-purple-500" />
-                  {translated.generateStoryTitle}
-                </CardTitle>
-                <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
-                  {translated.generateStoryDescription}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {/* Word Selection */}
-                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3 text-slate-700 dark:text-slate-300">
-                      {storyTranslated.title}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {words.map((word) => (
-                        <Button
-                          key={word}
-                          variant={selectedWords.has(word) ? "default" : "outline"}
-                          onClick={() => toggleWord(word)}
-                          className={`transition-all duration-200 ${
-                            selectedWords.has(word)
-                              ? "bg-purple-600 hover:bg-purple-700 text-white"
-                              : "bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700"
-                          }`}
-                        >
-                          {word}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Story Length Selector */}
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{translated.storyType.title}</span>
-                    <Select
-                      value={storyLength}
-                      onValueChange={(value) => setStoryLength(value as "short" | "medium" | "long")}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select length" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="short">{translated.storyType.short}</SelectItem>
-                        <SelectItem value="medium">{translated.storyType.medium}</SelectItem>
-                        <SelectItem value="long">{translated.storyType.long}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Generate Button */}
-                  {!story && (
-                    <Button
-                      onClick={handleGenerateStory}
-                      disabled={selectedWords.size === 0 || loading}
-                      className={`w-full h-12 text-lg transition-all duration-200 ${
-                        selectedWords.size === 0
-                          ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed"
-                          : "bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 text-white"
-                      }`}
-                    >
-                      {loading ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>{translated.generateLoad}</span>
-                        </div>
-                      ) : (
-                        translated.generateStoryButton
-                      )}
-                    </Button>
-                  )}
-
-                  {/* Generated Story */}
-                  {story && (
-                    <div className="mt-6 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Story and Speech Controls */}
-                        <div className="space-y-4">
-                          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-md">
-
-                            <div className="text-lg text-slate-700 dark:text-slate-300">
-                              {story?.split(/\b/).map((word, index) => {
-                                const clean = word.replace(/[^\w]/g, "").toLowerCase();
-                                return clean ? (
-                                  <span
-                                    key={index}
-                                    className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(clean) ? 'bg-yellow-300' : ''}`}
-                                    onMouseEnter={() => setHoveredWord({ word: clean, index })}
-                                    onMouseLeave={() => setHoveredWord(null)}
-                                  >
-                                    {word}
-                                    {hoveredWord?.word === clean && hoveredWord?.index === index && definitions[clean] && (
-                                      <div className="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border rounded shadow p-3 w-60 text-sm z-50">
-                                        <p className="font-bold">{clean}</p>
-                                          {definitions[clean]?.translatedWord && (
-                                            <p className="text-sm text-gray-500 italic">({definitions[clean].translatedWord})</p>
-                                          )}
-                                          <p className="italic text-gray-500">{definitions[clean].partOfSpeech}</p>
-                                          <p>{definitions[clean].definition}</p>
-
-                                        <Button
-                                          onClick={handleAddHoveredWord}
-                                          className="mt-2 w-full text-xs bg-purple-600 hover:bg-purple-700 text-white"
-                                        >
-                                          {translated.wordLists.addHovered}
-                                        </Button>
-                                        <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rotate-45 z-[-1]" />
-                                      </div>
-                                    )}
-                                  </span>
-                                ) : (
-                                  word
-                                );
-                              })}
-                            </div>
-
-                            <div className="mt-6 flex flex-col gap-4">
-                              <div className="flex gap-4">
-                                <Button
-                                  onClick={handleConvertToSpeech}
-                                  className="flex-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border-2 border-purple-200 dark:border-purple-800"
-                                  variant="outline"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Mic className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                                    <span>{translated.readStory}</span>
-                                  </div>
-                                </Button>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    onClick={handleSaveStory}
-                                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-                                    variant="default"
-                                  >
-                                    {isStorySaved ? (
-                                      <Bookmark className="h-5 w-5 fill-white" />
-                                    ) : (
-                                      <Bookmark className="h-5 w-5 text-purple-400" />
-                                    )}
-                                    <span className="ml-2">{savingMessage}</span>
-                                  </Button>
-                                </div>
-                              </div>
-                              {audioSrc && (
-                                <audio controls className="w-full">
-                                  <source src={audioSrc} type="audio/mpeg" />
-                                  {storyTranslated.audioError}
-                                </audio>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Generated Image */}
-                        {imageUrl && (
-                          <div className="relative group h-full">
-                            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-md h-full">
-                              <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-                                <img
-                                  src={imageUrl}
-                                  alt="Generated story illustration"
-                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                              </div>
-                            </div>
-                          </div>
                         )}
                       </div>
+                      {words.length === 0 && (
+                        <div className="text-center py-4 text-slate-500 dark:text-slate-400">
+                          {translated.wordLists.description}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+            )}
 
-                      {story && (
+            {showStoryGenerator && (
+              <section>
+                <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Sparkles className="h-6 w-6 text-purple-500" />
+                      {translated.generateStoryTitle}
+                    </CardTitle>
+                    <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
+                      {translated.generateStoryDescription}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* Word Selection */}
+                      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                          {storyTranslated.title}
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {words.map((word) => (
+                            <Button
+                              key={word}
+                              variant={selectedWords.has(word) ? "default" : "outline"}
+                              onClick={() => toggleWord(word)}
+                              className={`transition-all duration-200 ${
+                                selectedWords.has(word)
+                                  ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                  : "bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700"
+                              }`}
+                            >
+                              {word}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Story Length Selector */}
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{translated.storyType.title}</span>
+                        <Select
+                          value={storyLength}
+                          onValueChange={(value) => setStoryLength(value as "short" | "medium" | "long")}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select length" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="short">{translated.storyType.short}</SelectItem>
+                            <SelectItem value="medium">{translated.storyType.medium}</SelectItem>
+                            <SelectItem value="long">{translated.storyType.long}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Generate Button */}
+                      {!story && (
                         <Button
                           onClick={handleGenerateStory}
-                          disabled={selectedWords.size === 0 || loading}
+                          disabled={selectedWords.size === 0 || storyLoading}
                           className={`w-full h-12 text-lg transition-all duration-200 ${
                             selectedWords.size === 0
                               ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed"
                               : "bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 text-white"
                           }`}
                         >
-                          {loading ? (
+                          {storyLoading ? (
                             <div className="flex items-center gap-2">
                               <Loader2 className="h-4 w-4 animate-spin" />
                               <span>{translated.generateLoad}</span>
@@ -819,111 +821,232 @@ function DashboardPage() {
                         </Button>
                       )}
 
-                      <div className="flex justify-end">
-                        <Button
-                          variant="ghost"
-                          onClick={() => {
-                            setStory("");
-                            setHighlightedStory("");
-                            setImageUrl(null);
-                            setAudioSrc(null);
-                            setStory(null);
-                          }}
-                          className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          {translated.clearStory}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
+                      {/* Generated Story */}
+                      {story && (
+                        <div className="mt-6 space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Story and Speech Controls */}
+                            <div className="space-y-4">
+                              <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-md">
 
-          {/* Scroll to Top Button */}
-          <ScrollToTop />
+                                <div className="text-lg text-slate-700 dark:text-slate-300">
+                                  {story?.split(/\b/).map((word, index) => {
+                                    const clean = word.replace(/[^\w]/g, "").toLowerCase();
+                                    return clean ? (
+                                      <span
+                                        key={index}
+                                        className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(clean) ? 'bg-yellow-300' : ''}`}
+                                        onMouseEnter={() => setHoveredWord({ word: clean, index })}
+                                        onMouseLeave={() => setHoveredWord(null)}
+                                      >
+                                        {word}
+                                        {hoveredWord?.word === clean && hoveredWord?.index === index && definitions[clean] && (
+                                          <div className="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border rounded shadow p-3 w-60 text-sm z-50">
+                                            <p className="font-bold">{clean}</p>
+                                              {definitions[clean]?.translatedWord && (
+                                                <p className="text-sm text-gray-500 italic">({definitions[clean].translatedWord})</p>
+                                              )}
+                                              <p className="italic text-gray-500">{definitions[clean].partOfSpeech}</p>
+                                              <p>{definitions[clean].definition}</p>
 
-          {/* Saved Items Section */}
-          <section>
-            <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Bookmark className="h-5 w-5 text-purple-500" />
-                  {translated.extras.option2}
-                </CardTitle>
-                <CardDescription>{translated.extras.option2Description}</CardDescription>
-              </CardHeader>
-              <CardContent>
+                                            <Button
+                                              onClick={handleAddHoveredWord}
+                                              className="mt-2 w-full text-xs bg-purple-600 hover:bg-purple-700 text-white"
+                                            >
+                                              {translated.wordLists.addHovered}
+                                            </Button>
+                                            <div className="absolute left-1/2 transform -translate-x-1/2 top-full w-4 h-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rotate-45 z-[-1]" />
+                                          </div>
+                                        )}
+                                      </span>
+                                    ) : (
+                                      word
+                                    );
+                                  })}
+                                </div>
 
-              <div className="flex">
-                {/* Left Side: */}
-                <div className="w-1/3 border-r border-slate-200 dark:border-slate-700 pr-4">
-                  <div className="space-y-4">
-                    {savedStories.length === 0 ? (
-                      <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                        {translated.saveStoryDescription}
-                      </div>
-                    ) : (
-                      savedStories.map((savedStory) => (
-                        <div
-                          key={savedStory.id}
-                          onClick={() => {
-                            if (selectedStory?.id === savedStory.id) {
-                              // Deselect the story
-                              setSelectedStory(null);
-                              setIsStorySelected(false);
-                            } else {
-                              // Select the new story
-                              setSelectedStory(savedStory);
-                              setIsStorySelected(true);
-                            }
-                          }}
-                          className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
-                        >
-                          <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
-                            {savedStory.story.split(".")[0]}.
-                          </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {new Date(savedStory.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
+                                <div className="mt-6 flex flex-col gap-4">
+                                  <div className="flex gap-4">
+                                    <Button
+                                      onClick={handleConvertToSpeech}
+                                      className="flex-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border-2 border-purple-200 dark:border-purple-800"
+                                      variant="outline"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Mic className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                                        <span>{translated.readStory}</span>
+                                      </div>
+                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        onClick={handleSaveStory}
+                                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                                        variant="default"
+                                      >
+                                        {isStorySaved ? (
+                                          <Bookmark className="h-5 w-5 fill-white" />
+                                        ) : (
+                                          <Bookmark className="h-5 w-5 text-purple-400" />
+                                        )}
+                                        <span className="ml-2">{savingMessage}</span>
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  {audioSrc && (
+                                    <audio controls className="w-full">
+                                      <source src={audioSrc} type="audio/mpeg" />
+                                      {storyTranslated.audioError}
+                                    </audio>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
 
-                {/* Right Side */}
-                <div className="w-2/3 pl-4">
-                  {selectedStory ? (
-                    <div>
-                      <div className="flex-1">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {selectedStory.story}
-                        </p>
-                      </div>
-                      {selectedStory.image && (
-                        <div className="mt-4 flex justify-center">
-                          <img
-                            src={selectedStory.image}
-                            alt={selectedStory.title || "Story Image"}
-                            className="w-1/2 h-auto object-cover rounded-lg shadow-md"
-                          />
+                            {/* Generated Image */}
+                            {imageUrl && (
+                              <div className="relative group h-full">
+                                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-md h-full">
+                                  <div className="relative aspect-square w-full overflow-hidden rounded-lg">
+                                    <img
+                                      src={imageUrl}
+                                      alt="Generated story illustration"
+                                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {story && (
+                            <Button
+                              onClick={handleGenerateStory}
+                              disabled={selectedWords.size === 0 || storyLoading}
+                              className={`w-full h-12 text-lg transition-all duration-200 ${
+                                selectedWords.size === 0
+                                  ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed"
+                                  : "bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 text-white"
+                              }`}
+                            >
+                              {storyLoading ? (
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <span>{translated.generateLoad}</span>
+                                </div>
+                              ) : (
+                                translated.generateStoryButton
+                              )}
+                            </Button>
+                          )}
+
+                          <div className="flex justify-end">
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                setStory("");
+                                setHighlightedStory("");
+                                setImageUrl(null);
+                                setAudioSrc(null);
+                                setStory(null);
+                              }}
+                              className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              {translated.clearStory}
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                      {translated.selectStoryMessage}
+                  </CardContent>
+                </Card>
+              </section>
+            )}
+
+            {showSaved && (
+              <section>
+                <Card className="border-purple-100 shadow-lg dark:border-purple-800 dark:bg-slate-800">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Bookmark className="h-5 w-5 text-purple-500" />
+                      {translated.extras.option2}
+                    </CardTitle>
+                    <CardDescription>{translated.extras.option2Description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex">
+                      {/* Left Side: */}
+                      <div className="w-1/3 border-r border-slate-200 dark:border-slate-700 pr-4">
+                        <div className="space-y-4">
+                          {savedStories.length === 0 ? (
+                            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                              {translated.saveStoryDescription}
+                            </div>
+                          ) : (
+                            savedStories.map((savedStory) => (
+                              <div
+                                key={savedStory.id}
+                                onClick={() => {
+                                  if (selectedStory?.id === savedStory.id) {
+                                    // Deselect the story
+                                    setSelectedStory(null);
+                                    setIsStorySelected(false);
+                                  } else {
+                                    // Select the new story
+                                    setSelectedStory(savedStory);
+                                    setIsStorySelected(true);
+                                  }
+                                }}
+                                className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
+                              >
+                                <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
+                                  {savedStory.story.split(".")[0]}.
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  {new Date(savedStory.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Side */}
+                      <div className="w-2/3 pl-4">
+                        {selectedStory ? (
+                          <div>
+                            <div className="flex-1">
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {selectedStory.story}
+                              </p>
+                            </div>
+                            {selectedStory.image && (
+                              <div className="mt-4 flex justify-center">
+                                <img
+                                  src={selectedStory.image}
+                                  alt={selectedStory.title || "Story Image"}
+                                  className="w-1/2 h-auto object-cover rounded-lg shadow-md"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                            {translated.selectStoryMessage}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-       <SupportChat />
+                  </CardContent>
+                </Card>
+              </section>
+            )}
+
+            <ScrollToTop />
+          </div>
+
+          <SupportChat />
         </div>
       </main>
 
