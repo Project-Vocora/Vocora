@@ -33,11 +33,10 @@ function DashboardPage() {
   const storyTranslated = storyGenerator[language];
   const [newWord, setNewWord] = useState("");
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
-  const [highlightedStory, setHighlightedStory] = useState("");
   const [storyLength, setStoryLength] = useState<"short" | "medium" | "long">("medium");
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
   const {words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
-  const {story, setStory, imageUrl, setImageUrl, loading: storyLoading, generateStory, generateImageFromStory } = useStoryGenerator();
+  const { story, setStory, imageUrl, setImageUrl, highlightedStory, setHighlightedStory, loading: storyLoading, generateStory, generateImageFromStory,applyHighlighting} = useStoryGenerator();
   const {audioSrc, convertToSpeech, setAudioSrc } = useAudio();
   const {hoveredWord, setHoveredWord, definitions, handleAddHoveredWord } = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
@@ -68,18 +67,6 @@ function DashboardPage() {
     setIsStorySelected(false);
   }, [practiceLang]);
 
-  const applyHighlighting = (text: string) => {
-    let highlighted = text;
-    Array.from(selectedWords).forEach((word) => {
-      const regex = new RegExp(`\\b${word.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&")}\\b`, "gi");
-      highlighted = highlighted.replace(
-        regex,
-        `<span class="bg-yellow-300 font-bold px-1 rounded">${word}</span>`
-      );
-    });
-    setHighlightedStory(highlighted);
-  };
-
   const handleGenerateStory = async () => {
     if (selectedWords.size === 0) {
       alert(storyTranslated.listError);
@@ -87,7 +74,7 @@ function DashboardPage() {
     }
     const result = await generateStory(Array.from(selectedWords), storyLength);
     if (result) {
-      applyHighlighting(result);
+      applyHighlighting(result, selectedWords);
       await generateImageFromStory(result);
     } else {
       toast.error("Failed to generate story.");
@@ -127,9 +114,6 @@ function DashboardPage() {
     toast.success("Deleted word");
   };
   
-  const handleStoryLengthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStoryLength(e.target.value as "short" | "medium" | "long");
-  };
 
   useEffect(() => {
     const fetchLang = async () => {
