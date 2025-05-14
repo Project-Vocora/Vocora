@@ -16,15 +16,15 @@ import { toast } from "sonner"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Loader2 } from "lucide-react"
-import { useVocabWords } from "@/hooks/useVocabWords";
-import { useStoryGenerator } from "@/hooks/useStoryGenerator";
-import { useAudio } from "@/hooks/useAudio";
-import { useHoverWord } from "@/hooks/useHoverDefinitions";
+import { useVocabWords } from "@/hooks/wordlist/useVocabWords";
+import { useStoryGenerator } from "@/hooks/story-generator/useStoryGenerator";
+import { useAudio } from "@/hooks/story-generator/useAudio";
+import { useHoverWord } from "@/hooks/story-generator/useHoverDefinitions";
 import ReactMarkdown from "react-markdown";
 import Translations from "@/lang/Dashboard/writing";
 import { useSetLanguageFromURL } from "@/hooks/useSetLanguageFromURL";
-import { useSaveStory } from "@/hooks/useSaveStory";
-import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useSaveStory } from "@/hooks/story-generator/useSaveStory";
+import { useUserPreferences } from "@/hooks/account/useUserPreferences";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
