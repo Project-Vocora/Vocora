@@ -24,6 +24,7 @@ import ReactMarkdown from "react-markdown";
 import Translations from "@/lang/Dashboard/writing";
 import { useSetLanguageFromURL } from "@/hooks/useSetLanguageFromURL";
 import { useSaveStory } from "@/hooks/useSaveStory";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
@@ -49,6 +50,7 @@ function DashboardPage() {
   const [showStoryGenerator, setShowStoryGenerator] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const {savedStories, isStorySaved, savingMessage, setSavingMessage, fetchSavedStories, handleSaveStory, handleDeleteStory} = useSaveStory(practiceLang, language);
+  const { updatePracticeLang } = useUserPreferences(setPracticeLang);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -77,7 +79,7 @@ function DashboardPage() {
       applyHighlighting(result, selectedWords);
       await generateImageFromStory(result);
     } else {
-      toast.error("Failed to generate story.");
+      console.error("Failed to generate story.");
     }
   };
 
@@ -114,42 +116,10 @@ function DashboardPage() {
     toast.success("Deleted word");
   };
   
-
-  useEffect(() => {
-    const fetchLang = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-
-      const { data } = await supabase
-        .from("user_preferences")
-        .select("practice_lang")
-        .eq("uid", session.user.id)
-        .single();
-
-      if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
-        setPracticeLang(data.practice_lang);
-      }
-    };
-
-    fetchLang();
-    fetchSavedStories();
-  }, [router]);
-
   const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
     setPracticeLang(val);
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData.session;
-    if (!session) return;
-
-    await supabase
-      .from("user_preferences")
-      .update({ practice_lang: val })
-      .eq("uid", session.user.id);
-  };
+    await updatePracticeLang(val);
+};
 
     // Toggle word selection
     const toggleWord = (word: string) => {
