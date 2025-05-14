@@ -1,14 +1,11 @@
 "use client";
 import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/lang/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Progress } from "@/components/ui/progress"
-import Link from "next/link"
 import { useRouter } from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
 import { Navbar } from "@/components/dashboard/navbar";
@@ -25,84 +22,7 @@ import { useAudio } from "@/hooks/useAudio";
 import { useHoverWord } from "@/hooks/useHoverDefinitions";
 import ReactMarkdown from "react-markdown";
 import Translations from "@/lang/Dashboard/writing";
-
-function useSetLanguageFromURL() {
-  const { language, setLanguage } = useLanguage();
-  const searchParams = useSearchParams();
-  const langFromURL = searchParams?.get("lang");
-  const [languageReady, setLanguageReady] = useState(false);
-
-  // If language is in URL, update the language context.
-  useEffect(() => {
-    if (langFromURL && ["en", "es", "zh"].includes(langFromURL)) {
-      setLanguage(langFromURL as "en" | "es" | "zh");
-    }
-  }, [langFromURL, setLanguage]);
-
-  // Markes language as "ready" once language matches URL.
-  useEffect(() => {
-    if (langFromURL && language === langFromURL) {
-      setLanguageReady(true);
-    }
-  }, [langFromURL, language]);
-
-  // Prevents all actions until language is "ready".
-  useEffect(() => {
-    if (!languageReady) return;
-
-    const logUserLanguage = async () => {
-      // Gets the current user session.
-      const sessionResult = await supabase.auth.getSession();
-      const session = sessionResult.data.session;
-
-      if (!session) {
-        console.warn("No session found.");
-        return;
-      }
-
-      // Extracts user's information.
-      const user = session.user;
-      
-      // Inserts user's preferences into Supabase table.
-      const { error: insertError } = await supabase
-        .from("user_preferences")
-        .insert({
-          uid: user.id,
-          email: user.email,
-          preferred_lang: language,
-        })
-        .select();
-      
-      // If row already exists, update it.
-      if (insertError) {
-        if (insertError.code === "23505" || insertError.message.includes("duplicate key")) {
-          console.warn("Insert failed: row exists. Updating instead.");
-
-          const { error: updateError } = await supabase
-            .from("user_preferences")
-            .update({
-              preferred_lang: language,
-            })
-            .eq("uid", user.id);
-
-          if (updateError) {
-            console.error("User preferences update failed:", updateError.message);
-          } else {
-            console.log("User preferences updated successfully!");
-          }
-        } else {
-          console.error("User preferences insert failed:", insertError.message);
-        }
-      } else {
-        console.log("User preferences inserted successfully!");
-      }
-    };
-    // Runs when language changes
-    logUserLanguage();
-  }, [languageReady]);
-
-  return languageReady;
-};
+import { useSetLanguageFromURL } from "@/hooks/useSetLanguageFromURL";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
@@ -113,7 +33,6 @@ function DashboardPage() {
   const [newWord, setNewWord] = useState("");
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
   const [highlightedStory, setHighlightedStory] = useState("");
-  const [progress, setProgress] = useState(68);
   const [storyLength, setStoryLength] = useState<"short" | "medium" | "long">("medium");
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
   const [savedStories, setSavedStories] = useState<any[]>([]);
