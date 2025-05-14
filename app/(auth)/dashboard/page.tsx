@@ -23,10 +23,11 @@ import { useHoverWord } from "@/hooks/useHoverDefinitions";
 import ReactMarkdown from "react-markdown";
 import Translations from "@/lang/Dashboard/writing";
 import { useSetLanguageFromURL } from "@/hooks/useSetLanguageFromURL";
+import { useSaveStory } from "@/hooks/useSaveStory";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
-  const { language, setLanguage } = useLanguage();
+  const {language, setLanguage } = useLanguage();
   const router = useRouter();
   const translated = dashBoardTranslations[language];
   const storyTranslated = storyGenerator[language];
@@ -35,13 +36,10 @@ function DashboardPage() {
   const [highlightedStory, setHighlightedStory] = useState("");
   const [storyLength, setStoryLength] = useState<"short" | "medium" | "long">("medium");
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
-  const [savedStories, setSavedStories] = useState<any[]>([]);
-  const { words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
-  const { story, setStory, imageUrl, setImageUrl, loading: storyLoading, generateStory, generateImageFromStory } = useStoryGenerator();
-  const { audioSrc, convertToSpeech, setAudioSrc } = useAudio();
-  const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord } = useHoverWord(practiceLang, words, setWords, story || "", language);
-  const [isStorySaved, setIsStorySaved] = useState(false);
-  const [savingMessage, setSavingMessage] = useState("");
+  const {words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
+  const {story, setStory, imageUrl, setImageUrl, loading: storyLoading, generateStory, generateImageFromStory } = useStoryGenerator();
+  const {audioSrc, convertToSpeech, setAudioSrc } = useAudio();
+  const {hoveredWord, setHoveredWord, definitions, handleAddHoveredWord } = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
   const [isStorySelected, setIsStorySelected] = useState<boolean>(false);
   const [input, setInput] = useState("");
@@ -51,7 +49,8 @@ function DashboardPage() {
   const [showWordList, setShowWordList] = useState(false);
   const [showStoryGenerator, setShowStoryGenerator] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
-  
+  const {savedStories, isStorySaved, savingMessage, setSavingMessage, fetchSavedStories, handleSaveStory, handleDeleteStory} = useSaveStory(practiceLang, language);
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -65,26 +64,9 @@ function DashboardPage() {
   }, [language]);
 
   useEffect(() => {
-    const fetchSavedStories = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-  
-      const { data, error } = await supabase
-        .from("user_stories")
-        .select("*")
-        .eq("uid", user.id)
-        .order("created_at", { ascending: false });
-  
-      if (!error && data) {
-        setSavedStories(data);  // Update the state with the fetched stories
-      } else {
-        console.error("Error fetching saved stories:", error);
-      }
-    };
-  
-    fetchSavedStories();  // Call the function to fetch saved stories
-  }, [router]);  // This effect runs whenever the router (and thus the session) changes
-  
+    setSelectedStory(null);
+    setIsStorySelected(false);
+  }, [practiceLang]);
 
   const applyHighlighting = (text: string) => {
     let highlighted = text;
@@ -144,105 +126,7 @@ function DashboardPage() {
     });
     toast.success("Deleted word");
   };
-  const fetchSavedStories = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("user_stories")
-      .select("*")
-      .eq("uid", user.id)
-      .eq("language", practiceLang)
-      .order("created_at", { ascending: false });
-
-    if (!error && data) setSavedStories(data);
-  };
-
-  const handleSaveStory = async () => {
-    console.log("handleSaveStory called"); 
-    if (!story || !imageUrl) {
-      toast.error("No story or image to save");
-      return;
-    }
   
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-   
-    if (isStorySaved) {
-      // Unsaving the story
-      try {
-        const { error: deleteError } = await supabase
-          .from("user_stories")
-          .delete()
-          .eq("uid", user.id)
-          .eq("story", story);
-  
-        if (deleteError) throw deleteError;
-  
-        setIsStorySaved(false);
-        setSavingMessage(translated.saveStory);
-
-        fetchSavedStories();
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      try {
-        // Check if the image URL is a base64 string
-        let base64Image = imageUrl;
-        if (!base64Image.startsWith('data:image')) {
-          // Convert image URL to base64
-          const response = await fetch(imageUrl);
-          const blob = await response.blob();
-          
-          base64Image = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              if (reader.result === null) {
-                reject(new Error("Failed to read image as base64"));
-              } else if (typeof reader.result === 'string') {
-                resolve(reader.result);
-              } else {
-                reject(new Error("Failed to read image as base64"));
-              }
-            };
-            reader.onerror = () => reject(new Error("Error reading image file"));
-            reader.readAsDataURL(blob);
-          });
-        }
-    
-        // Save the story and image to the database
-        const { error: saveError } = await supabase
-          .from("user_stories")
-          .upsert([
-            {
-              uid: user.id,
-              story: story,
-              image: base64Image,
-              language: practiceLang,
-              created_at: new Date().toISOString(),
-            },
-          ]);
-    
-        if (saveError) throw saveError;
-        
-        setIsStorySaved(true);
-        setSavingMessage(translated.savedStory);
-
-        fetchSavedStories();
-      }catch (err) {
-        console.error(err);
-      }
-    }
-  };  
-
-  const handleDeleteStory = async (id: number) => {
-    const { error } = await supabase.from("saved_stories").delete().eq("id", id);
-    if (error) return toast.error("Failed to delete");
-    setSavedStories((prev) => prev.filter((s) => s.id !== id));
-    toast.success("Story deleted");
-  };
-
   const handleStoryLengthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStoryLength(e.target.value as "short" | "medium" | "long");
   };
@@ -798,7 +682,7 @@ function DashboardPage() {
                                     </Button>
                                     <div className="flex items-center gap-2">
                                       <Button
-                                        onClick={handleSaveStory}
+                                        onClick={() => handleSaveStory(story, imageUrl, translated)}
                                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                                         variant="default"
                                       >
