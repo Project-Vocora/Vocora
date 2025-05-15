@@ -92,12 +92,11 @@ export function useSaveStory(practiceLang: "en" | "es" | "zh", language: string)
     }
   };
 
+   
+  
   const handleDeleteStory = async (id: number) => {
     const { error } = await supabase.from("saved_stories").delete().eq("id", id);
-    if (error) {
-      toast.error("Failed to delete");
-      return;
-    }
+    if (error) return toast.error("Failed to delete");
     setSavedStories((prev) => prev.filter((s) => s.id !== id));
     toast.success("Story deleted");
   };

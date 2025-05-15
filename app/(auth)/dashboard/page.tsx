@@ -118,11 +118,6 @@ function DashboardPage() {
     });
     toast.success("Deleted word");
   };
-  
-  const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
-    setPracticeLang(val);
-    await updatePracticeLang(val);
-};
 
   // Toggle word selection
   const toggleWord = (word: string) => {
@@ -499,10 +494,31 @@ function DashboardPage() {
                     <div className="space-y-6">
                       {/* Word Selection */}
                       <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
-                        <h3 className="text-lg font-semibold mb-3 text-slate-700 dark:text-slate-300">
-                          {storyTranslated.title}
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
+                        {/* Container for Title and Select All/Deselect All button */}
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+                            {storyTranslated.title}
+                          </h3>
+                          {words.length > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (selectedWords.size === words.length) {
+                                  setSelectedWords(new Set()); // Deselect all
+                                } else {
+                                  setSelectedWords(new Set(words)); // Select all (assuming words is string[])
+                                }
+                              }}
+                              className="text-xs border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-400 dark:hover:text-white"
+                            >
+                              {selectedWords.size === words.length ? storyTranslated.deselectAll : storyTranslated.selectAll}
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* Word list itself */}
+                        <div className="flex flex-wrap gap-2 items-center">
                           {words.map((word) => (
                             <Button
                               key={word}
@@ -520,22 +536,44 @@ function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Story Length Selector */}
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{translated.storyType.title}</span>
-                        <Select
-                          value={storyLength}
-                          onValueChange={(value) => setStoryLength(value as "short" | "medium" | "long")}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select length" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="short">{translated.storyType.short}</SelectItem>
-                            <SelectItem value="medium">{translated.storyType.medium}</SelectItem>
-                            <SelectItem value="long">{translated.storyType.long}</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {/* Story Length Selector & Conditional Clear Story Button */}
+                      <div className="flex items-center justify-between gap-4">
+                        {/* Story Length Selector (Left side) */}
+                        <div className="flex items-center gap-x-2"> {/* Reduced gap for story length title and select */}
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{translated.storyType.title}</span>
+                          <Select
+                            value={storyLength}
+                            onValueChange={(value) => setStoryLength(value as "short" | "medium" | "long")}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Select length" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="short">{translated.storyType.short}</SelectItem>
+                              <SelectItem value="medium">{translated.storyType.medium}</SelectItem>
+                              <SelectItem value="long">{translated.storyType.long}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Clear Story Button (Right side, conditional) */}
+                        {story && (
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              setStory("");
+                              setHighlightedStory("");
+                              setImageUrl(null);
+                              setAudioSrc(null);
+                              setStory(null); // Ensures the story section is hidden
+                            }}
+                            className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
+                            title={translated.clearStory}
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            {translated.clearStory}
+                          </Button>
+                        )}
                       </div>
 
                       {/* Generate Button */}
@@ -641,7 +679,7 @@ function DashboardPage() {
                               </div>
                             </div>
 
-                            {/* Generated Image */}
+                            {/* Generated Image (Now only the image container) */}
                             {imageUrl && (
                               <div className="relative group h-full">
                                 <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-md h-full">
@@ -656,8 +694,10 @@ function DashboardPage() {
                                 </div>
                               </div>
                             )}
+                             {!imageUrl && story && <div />} {/* Keep placeholder for grid structure if story but no image */}
                           </div>
 
+                          {/* Regenerate Button */}
                           {story && (
                             <Button
                               onClick={handleGenerateStory}
@@ -678,23 +718,6 @@ function DashboardPage() {
                               )}
                             </Button>
                           )}
-
-                          <div className="flex justify-end">
-                            <Button
-                              variant="ghost"
-                              onClick={() => {
-                                setStory("");
-                                setHighlightedStory("");
-                                setImageUrl(null);
-                                setAudioSrc(null);
-                                setStory(null);
-                              }}
-                              className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
-                            >
-                              <X className="h-4 w-4 mr-2" />
-                              {translated.clearStory}
-                            </Button>
-                          </div>
                         </div>
                       )}
                     </div>
@@ -737,14 +760,36 @@ function DashboardPage() {
                                     setIsStorySelected(true);
                                   }
                                 }}
-                                className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
+                                className="relative group cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
                               >
-                                <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
-                                  {savedStory.story.split(".")[0]}.
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  {new Date(savedStory.created_at).toLocaleDateString()}
-                                </p>
+                                <div className="pr-6">
+                                  <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
+                                    {savedStory.story.split(".")[0]}.
+                                  </p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {new Date(savedStory.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute top-1/2 right-2 transform -translate-y-1/2 h-7 w-7 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteStory(savedStory.id);
+                                        }}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{translated.deleteStory || "Delete story"}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                             ))
                           )}
