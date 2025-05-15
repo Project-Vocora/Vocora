@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link"
 import { useRouter } from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
+import welcomeTranslations from "@/lang/Dashboard/welcome";
 import { Navbar } from "@/components/dashboard/navbar";
 import {SupportChat} from "@/components/support-chat";
 import storyGenerator from "@/lang/Story-Generator/story-generator";
@@ -547,42 +548,42 @@ function DashboardPage() {
                   <CardHeader>
                     <CardTitle className="text-2xl flex items-center gap-2">
                       <Lightbulb className="h-6 w-6 text-purple-500" />
-                      Welcome to Vocora
+                      {welcomeTranslations[language].title}
                     </CardTitle>
                     <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
-                      Click on any of the buttons above to get started with your language learning journey!
+                    {welcomeTranslations[language].prompt}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-400">Quick Start Guide</h3>
+                        <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-400">{welcomeTranslations[language].guide}</h3>
                         <ul className="space-y-2 text-slate-600 dark:text-slate-400">
                           <li className="flex items-center gap-2">
                             <List className="h-4 w-4 text-purple-500" />
-                            Build your vocabulary with Word Lists
+                            {welcomeTranslations[language].build}
                           </li>
                           <li className="flex items-center gap-2">
                             <Sparkles className="h-4 w-4 text-purple-500" />
-                            Create stories using your vocabulary
+                            {welcomeTranslations[language].create}
                           </li>
                           <li className="flex items-center gap-2">
                             <MessageSquare className="h-4 w-4 text-purple-500" />
-                            Practice writing and get feedback
+                            {welcomeTranslations[language].prac}
                           </li>
                           <li className="flex items-center gap-2">
                             <Bookmark className="h-4 w-4 text-purple-500" />
-                            Save your progress and favorite content
+                            {welcomeTranslations[language].save}
                           </li>
                         </ul>
                       </div>
                       <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6">
                         <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-400 mb-4">Tips</h3>
                         <ul className="space-y-2 text-slate-600 dark:text-slate-400">
-                          <li>• Start by adding words to your vocabulary list</li>
-                          <li>• Use the story generator to practice using your words</li>
-                          <li>• Get writing feedback to improve your skills</li>
-                          <li>• Save your favorite stories and practice materials</li>
+                          <li>• {welcomeTranslations[language].tip}</li>
+                          <li>• {welcomeTranslations[language].storygen}</li>
+                          <li>• {welcomeTranslations[language].feedback}</li>
+                          <li>• {welcomeTranslations[language].saveprac}</li>
                         </ul>
                       </div>
                     </div>
