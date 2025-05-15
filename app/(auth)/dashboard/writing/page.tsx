@@ -14,6 +14,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { List, MessageSquare, Plus, X } from "lucide-react";
 import { Navbar } from "@/components/dashboard/navbar";
+import { useUserPreferences } from "@/hooks/account/useUserPreferences";
+import languageDisplayNames from "@/lang/Dashboard/practiceLangDisplay";
+
 function useSetLanguageFromURL() {
   const { language, setLanguage } = useLanguage();
   const searchParams = useSearchParams();
@@ -98,30 +101,13 @@ export default function SentencePage() {
   const [loading, setLoading] = useState(false);
   const { language } = useLanguage();
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
+  const { fetchUserData } = useUserPreferences(setPracticeLang);
+  
   useEffect(() => {
-    const getPracticeLang = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-
-      const { data } = await supabase
-        .from("user_preferences")
-        .select("practice_lang")
-        .eq("uid", session.user.id)
-        .single();
-
-      if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
-        setPracticeLang(data.practice_lang);
-      }
-    };
-    getPracticeLang();
+    fetchUserData();
   }, []);
     
   const handleSend = async () => {
-
     if (!input.trim()) return;
     setLoading(true);
     setReply(""); // Clear old reply
@@ -162,7 +148,7 @@ export default function SentencePage() {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={`${Translations[language].prompt} ${practiceLang}...`}
+          placeholder={`${Translations[language].prompt} ${languageDisplayNames[language][practiceLang]}...`}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           className="mb-4"
         />
@@ -172,9 +158,9 @@ export default function SentencePage() {
         </Button>
 
         {reply && (
-          <div className="mt-6 w-full bg-purple-100 text-purple-900 p-4 rounded-xl shadow prose">
-          <ReactMarkdown>{reply}</ReactMarkdown>
-        </div>
+          <div className="mt-6 w-full bg-purple-100 text-purple-900 p-4 rounded-xl shadow prose dark:prose-invert dark:bg-purple-900/20 dark:text-purple-100">
+            <ReactMarkdown>{reply}</ReactMarkdown>
+          </div>
         )}
       </main>
     

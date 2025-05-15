@@ -7,6 +7,7 @@ import { Header } from "@/components/story-generator/header";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lang/LanguageContext";
 import storyGenerator from "@/lang/Story-Generator/story-generator";
+import { splitIntoWords, cleanWord } from "@/lib/utils";
 
 export default function SuccessPage() {
   const [words, setWords] = useState<string[]>([]);
@@ -293,22 +294,22 @@ export default function SuccessPage() {
             {/* Story Output */}
             <div className="bg-gray-50 rounded-lg p-6 mt-4">
               <p className="text-gray-600 relative text-2xl">
-                {generatedStory.split(/\b/).map((word, index) => {
-                  const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
+                {splitIntoWords(generatedStory).map((word, index) => {
+                  const cleanedWord = cleanWord(word);
 
-                  return cleanWord ? (
+                  return cleanedWord ? (
                     <span
                       key={index}
-                      className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(cleanWord) ? 'bg-yellow-300' : ''}`}
-                      onMouseEnter={() => setHoveredWord({ word: cleanWord, index })}
+                      className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(cleanedWord) ? 'bg-yellow-300' : ''}`}
+                      onMouseEnter={() => setHoveredWord({ word: cleanedWord, index })}
                       onMouseLeave={() => setHoveredWord(null)}
                     >
                       {word}
-                      {hoveredWord && hoveredWord.word === cleanWord && hoveredWord.index === index && definitions[cleanWord] && (
+                      {hoveredWord && hoveredWord.word === cleanedWord && hoveredWord.index === index && definitions[cleanedWord] && (
                         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg p-3 text-sm">
-                          <p className="font-bold text-black">{cleanWord}</p>
-                          <p className="text-gray-500 italic">{definitions[cleanWord]?.partOfSpeech || "noun"}</p>
-                          <p className="text-gray-700">{definitions[cleanWord]?.definition || "No definition found."}</p>
+                          <p className="font-bold text-black">{cleanedWord}</p>
+                          <p className="text-gray-500 italic">{definitions[cleanedWord]?.partOfSpeech || "noun"}</p>
+                          <p className="text-gray-700">{definitions[cleanedWord]?.definition || "No definition found."}</p>
 
                           <button className="mt-2 w-full bg-purple-500 text-white py-1 px-2 rounded text-xs flex items-center justify-center hover:bg-purple-600" onClick={handleAddHoveredWord}>
                             {translated.addToList}
