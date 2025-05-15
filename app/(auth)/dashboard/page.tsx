@@ -1,139 +1,60 @@
 "use client";
-import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { useLanguage } from "@/lang/LanguageContext";
-import { supabase } from "@/lib/supabase";
-import { Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Progress } from "@/components/ui/progress"
-import Link from "next/link"
-import { useRouter } from "next/navigation";
+import {Suspense, useState, useEffect} from "react";
+import {useLanguage} from "@/lang/LanguageContext";
+import {supabase} from "@/lib/supabase";
+import {Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus} from "lucide-react"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Button} from "@/components/ui/button"
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
+import {useRouter} from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
 import welcomeTranslations from "@/lang/Dashboard/welcome";
-import { Navbar } from "@/components/dashboard/navbar";
+import {Navbar} from "@/components/dashboard/navbar";
 import {SupportChat} from "@/components/support-chat";
 import storyGenerator from "@/lang/Story-Generator/story-generator";
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
-import { ScrollToTop } from "@/components/scroll-to-top"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Loader2 } from "lucide-react"
-import { useVocabWords } from "@/hooks/useVocabWords";
-import { useStoryGenerator } from "@/hooks/useStoryGenerator";
-import { useAudio } from "@/hooks/useAudio";
-import { useHoverWord } from "@/hooks/useHoverDefinitions";
+import {Input} from "@/components/ui/input"
+import {toast} from "sonner"
+import {ScrollToTop} from "@/components/scroll-to-top"
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
+import {Loader2} from "lucide-react"
+import {useVocabWords} from "@/hooks/wordlist/useVocabWords";
+import {useStoryGenerator} from "@/hooks/story-generator/useStoryGenerator";
+import {useAudio} from "@/hooks/story-generator/useAudio";
+import {useHoverWord} from "@/hooks/story-generator/useHoverDefinitions";
 import ReactMarkdown from "react-markdown";
 import Translations from "@/lang/Dashboard/writing";
-
-function useSetLanguageFromURL() {
-  const { language, setLanguage } = useLanguage();
-  const searchParams = useSearchParams();
-  const langFromURL = searchParams?.get("lang");
-  const [languageReady, setLanguageReady] = useState(false);
-
-  // If language is in URL, update the language context.
-  useEffect(() => {
-    if (langFromURL && ["en", "es", "zh"].includes(langFromURL)) {
-      setLanguage(langFromURL as "en" | "es" | "zh");
-    }
-  }, [langFromURL, setLanguage]);
-
-  // Markes language as "ready" once language matches URL.
-  useEffect(() => {
-    if (langFromURL && language === langFromURL) {
-      setLanguageReady(true);
-    }
-  }, [langFromURL, language]);
-
-  // Prevents all actions until language is "ready".
-  useEffect(() => {
-    if (!languageReady) return;
-
-    const logUserLanguage = async () => {
-      // Gets the current user session.
-      const sessionResult = await supabase.auth.getSession();
-      const session = sessionResult.data.session;
-
-      if (!session) {
-        console.warn("No session found.");
-        return;
-      }
-
-      // Extracts user's information.
-      const user = session.user;
-      
-      // Inserts user's preferences into Supabase table.
-      const { error: insertError } = await supabase
-        .from("user_preferences")
-        .insert({
-          uid: user.id,
-          email: user.email,
-          preferred_lang: language,
-        })
-        .select();
-      
-      // If row already exists, update it.
-      if (insertError) {
-        if (insertError.code === "23505" || insertError.message.includes("duplicate key")) {
-          console.warn("Insert failed: row exists. Updating instead.");
-
-          const { error: updateError } = await supabase
-            .from("user_preferences")
-            .update({
-              preferred_lang: language,
-            })
-            .eq("uid", user.id);
-
-          if (updateError) {
-            console.error("User preferences update failed:", updateError.message);
-          } else {
-            console.log("User preferences updated successfully!");
-          }
-        } else {
-          console.error("User preferences insert failed:", insertError.message);
-        }
-      } else {
-        console.log("User preferences inserted successfully!");
-      }
-    };
-    // Runs when language changes
-    logUserLanguage();
-  }, [languageReady]);
-
-  return languageReady;
-};
+import {useSetLanguageFromURL} from "@/hooks/useSetLanguageFromURL";
+import {useSaveStory} from "@/hooks/story-generator/useSaveStory";
+import {useUserPreferences} from "@/hooks/account/useUserPreferences";
+import {useWritingFeedback} from "@/hooks/writing/useWritingFeedback";
+import languageDisplayNames from "@/lang/Dashboard/practiceLangDisplay";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
-  const { language, setLanguage } = useLanguage();
+  const {language, setLanguage} = useLanguage();
   const router = useRouter();
   const translated = dashBoardTranslations[language];
   const storyTranslated = storyGenerator[language];
   const [newWord, setNewWord] = useState("");
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
-  const [highlightedStory, setHighlightedStory] = useState("");
-  const [progress, setProgress] = useState(68);
   const [storyLength, setStoryLength] = useState<"short" | "medium" | "long">("medium");
-  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
-  const [savedStories, setSavedStories] = useState<any[]>([]);
-  const { words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
-  const { story, setStory, imageUrl, setImageUrl, loading: storyLoading, generateStory, generateImageFromStory } = useStoryGenerator();
-  const { audioSrc, convertToSpeech, setAudioSrc } = useAudio();
-  const { hoveredWord, setHoveredWord, definitions, handleAddHoveredWord } = useHoverWord(practiceLang, words, setWords, story || "", language);
-  const [isStorySaved, setIsStorySaved] = useState(false);
-  const [savingMessage, setSavingMessage] = useState("");
+  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh" >("en");
+  const {words, setWords, addWord, deleteWord, deleteAllWords} = useVocabWords(practiceLang || "en");
+  const {story, setStory, imageUrl, setImageUrl, highlightedStory, setHighlightedStory, loading: storyLoading, generateStory, generateImageFromStory, applyHighlighting} = useStoryGenerator();
+  const {audioSrc, convertToSpeech, setAudioSrc} = useAudio();
+  const {hoveredWord, setHoveredWord, definitions, handleAddHoveredWord} = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
   const [isStorySelected, setIsStorySelected] = useState<boolean>(false);
-  const [input, setInput] = useState("");
-  const [reply, setReply] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showWriting, setShowWriting] = useState(false);
   const [showWordList, setShowWordList] = useState(false);
   const [showStoryGenerator, setShowStoryGenerator] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
-  
+  const {savedStories, isStorySaved, savingMessage, setSavingMessage, fetchSavedStories, handleSaveStory, handleDeleteStory} = useSaveStory(practiceLang, language);
+  const {updatePracticeLang, fetchUserData } = useUserPreferences(setPracticeLang);
+  const {input, setInput, reply, loading, sendForFeedback} = useWritingFeedback(practiceLang, language);
+  const langDisplay = languageDisplayNames[language];
+
+  // Check if user is authenticated
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -142,63 +63,29 @@ function DashboardPage() {
     checkAuth();
   }, [router]);
 
+  // Set saving message when language changes
   useEffect(() => {
     setSavingMessage(translated.saveStory);
   }, [language]);
 
+  // Reset selected story when practice language changes
   useEffect(() => {
-    const fetchSavedStories = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-  
-      const { data, error } = await supabase
-        .from("user_stories")
-        .select("*")
-        .eq("uid", user.id)
-        .order("created_at", { ascending: false });
-  
-      if (!error && data) {
-        setSavedStories(data);  // Update the state with the fetched stories
-      } else {
-        console.error("Error fetching saved stories:", error);
-      }
-    };
-  
-    fetchSavedStories();  // Call the function to fetch saved stories
-  }, [router]);  // This effect runs whenever the router (and thus the session) changes
-  
+    setSelectedStory(null);
+    setIsStorySelected(false);
+  }, [practiceLang]);
 
-  const applyHighlighting = (text: string) => {
-    let highlighted = text;
-    Array.from(selectedWords).forEach((word) => {
-      const regex = new RegExp(`\\b${word.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&")}\\b`, "gi");
-      highlighted = highlighted.replace(
-        regex,
-        `<span class="bg-yellow-300 font-bold px-1 rounded">${word}</span>`
-      );
-    });
-    setHighlightedStory(highlighted);
+  // Fetch user data and preferences
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  // Handle switching the practice language and sync changes to the database
+  const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
+    setPracticeLang(val);
+    await updatePracticeLang(val);
   };
 
-  const handleGenerateStory = async () => {
-    if (selectedWords.size === 0) {
-      alert(storyTranslated.listError);
-      return;
-    }
-    const result = await generateStory(Array.from(selectedWords), storyLength);
-    if (result) {
-      applyHighlighting(result);
-      await generateImageFromStory(result);
-    } else {
-      toast.error("Failed to generate story.");
-    }
-  };
-
-  const handleConvertToSpeech = async () => {
-    if (!story) return alert(storyTranslated.speechError1);
-    await convertToSpeech(story);
-  };
-
+  // Add new word to the list
   const handleAddWord = async () => {
     const trimmed = newWord.trim();
     if (!trimmed) return;
@@ -217,214 +104,61 @@ function DashboardPage() {
     }
   };
 
+  // Delete a single word from the list
   const handleDeleteWord = async (word: string) => {
     await deleteWord(word);
+
     setSelectedWords((prev) => {
       const updated = new Set(prev);
       updated.delete(word);
       return updated;
     });
+
     toast.success("Deleted word");
   };
-  const fetchSavedStories = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
 
-    const { data, error } = await supabase
-      .from("user_stories")
-      .select("*")
-      .eq("uid", user.id)
-      .eq("language", practiceLang)
-      .order("created_at", { ascending: false });
-
-    if (!error && data) setSavedStories(data);
+  // Delete all vocabulary words from the list
+  const handleDeleteAllWords = async () => {
+    const { error } = await deleteAllWords();
+    if (error) {
+      toast.error("Failed to delete all words");
+    } else {
+      toast.success("All words deleted successfully");
+    }
+  };
+  
+  // Toggle selection state for a
+  const toggleWord = (word: string) => {
+    setSelectedWords((prev) => {
+      const newSelectedWords = new Set(prev);
+      if (newSelectedWords.has(word)) {
+        newSelectedWords.delete(word);
+      } else {
+        newSelectedWords.add(word);
+      }
+      return newSelectedWords;
+    });
   };
 
-  const handleSaveStory = async () => {
-    console.log("handleSaveStory called"); 
-    if (!story || !imageUrl) {
-      toast.error("No story or image to save");
+  // Handle story generation
+  const handleGenerateStory = async () => {
+    if (selectedWords.size === 0) {
+      alert(storyTranslated.listError);
       return;
     }
-  
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-   
-    if (isStorySaved) {
-      // Unsaving the story
-      try {
-        const { error: deleteError } = await supabase
-          .from("user_stories")
-          .delete()
-          .eq("uid", user.id)
-          .eq("story", story);
-  
-        if (deleteError) throw deleteError;
-  
-        setIsStorySaved(false);
-        setSavingMessage(translated.saveStory);
-
-        fetchSavedStories();
-      } catch (err) {
-        console.error(err);
-      }
+    const result = await generateStory(Array.from(selectedWords), storyLength);
+    if (result) {
+      applyHighlighting(result, selectedWords);
+      await generateImageFromStory(result);
     } else {
-      try {
-        // Check if the image URL is a base64 string
-        let base64Image = imageUrl;
-        if (!base64Image.startsWith('data:image')) {
-          // Convert image URL to base64
-          const response = await fetch(imageUrl);
-          const blob = await response.blob();
-          
-          base64Image = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              if (reader.result === null) {
-                reject(new Error("Failed to read image as base64"));
-              } else if (typeof reader.result === 'string') {
-                resolve(reader.result);
-              } else {
-                reject(new Error("Failed to read image as base64"));
-              }
-            };
-            reader.onerror = () => reject(new Error("Error reading image file"));
-            reader.readAsDataURL(blob);
-          });
-        }
-    
-        // Save the story and image to the database
-        const { error: saveError } = await supabase
-          .from("user_stories")
-          .upsert([
-            {
-              uid: user.id,
-              story: story,
-              image: base64Image,
-              language: practiceLang,
-              created_at: new Date().toISOString(),
-            },
-          ]);
-    
-        if (saveError) throw saveError;
-        
-        setIsStorySaved(true);
-        setSavingMessage(translated.savedStory);
-
-        fetchSavedStories();
-      }catch (err) {
-        console.error(err);
-      }
-    }
-  };  
-
-  const handleDeleteStory = async (id: number) => {
-    const { error } = await supabase.from("saved_stories").delete().eq("id", id);
-    if (error) return toast.error("Failed to delete");
-    setSavedStories((prev) => prev.filter((s) => s.id !== id));
-    toast.success("Story deleted");
-  };
-
-  const handleStoryLengthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStoryLength(e.target.value as "short" | "medium" | "long");
-  };
-
-  useEffect(() => {
-    const fetchLang = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-
-      const { data } = await supabase
-        .from("user_preferences")
-        .select("practice_lang")
-        .eq("uid", session.user.id)
-        .single();
-
-      if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
-        setPracticeLang(data.practice_lang);
-      }
-    };
-
-    fetchLang();
-    fetchSavedStories();
-  }, [router]);
-
-  const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
-    setPracticeLang(val);
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData.session;
-    if (!session) return;
-
-    await supabase
-      .from("user_preferences")
-      .update({ practice_lang: val })
-      .eq("uid", session.user.id);
-  };
-
-    // Toggle word selection
-    const toggleWord = (word: string) => {
-      setSelectedWords((prev) => {
-        const newSelectedWords = new Set(prev);
-        if (newSelectedWords.has(word)) {
-          newSelectedWords.delete(word);
-        } else {
-          newSelectedWords.add(word);
-        }
-        return newSelectedWords;
-      });
-    };
-
-    // Delete all words
-  const handleDeleteAllWords = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Please log in to delete words");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("vocab_words")
-        .delete()
-        .eq("uid", user.id)
-        .eq("language", language);
-
-      if (error) {
-        toast.error("Failed to delete all words");
-        return;
-      }
-
-      setWords([]);
-      toast.success("All words deleted successfully");
-    } catch (error) {
-      console.error("Error deleting all words:", error);
-      toast.error("Failed to delete all words");
+      console.error("Failed to generate story.");
     }
   };
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    setLoading(true);
-    setReply(""); // Clear old reply
-    try {
-      const response = await fetch("/api/writing_prac", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, practiceLang, language }),
-      });
-
-      const data = await response.json();
-      setReply(data.reply || "No feedback received.");
-    } catch (err) {
-      console.error(err);
-      setReply("Error getting feedback. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  // Handle audio generation
+  const handleConvertToSpeech = async () => {
+    if (!story) return alert(storyTranslated.speechError1);
+    await convertToSpeech(story);
   };
 
   if (!languageReady) {
@@ -453,9 +187,9 @@ function DashboardPage() {
                           <SelectValue placeholder="Select language" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="zh">中文</SelectItem>
+                          <SelectItem value="en">{langDisplay["en"]}</SelectItem>
+                          <SelectItem value="es">{langDisplay["es"]}</SelectItem>
+                          <SelectItem value="zh">{langDisplay["zh"]}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -611,10 +345,10 @@ function DashboardPage() {
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           placeholder={`${Translations[language].prompt} ${practiceLang}...`}
-                          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                          onKeyDown={(e) => e.key === "Enter" && sendForFeedback()}
                           className="mb-4"
                         />
-                        <Button onClick={handleSend} disabled={loading} className="w-full">
+                        <Button onClick={sendForFeedback} disabled={loading} className="w-full">
                           {loading ? "Checking..." : "Submit"}
                         </Button>
                       </div>
@@ -761,10 +495,31 @@ function DashboardPage() {
                     <div className="space-y-6">
                       {/* Word Selection */}
                       <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
-                        <h3 className="text-lg font-semibold mb-3 text-slate-700 dark:text-slate-300">
-                          {storyTranslated.title}
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
+                        {/* Container for Title and Select All/Deselect All button */}
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+                            {storyTranslated.title}
+                          </h3>
+                          {words.length > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (selectedWords.size === words.length) {
+                                  setSelectedWords(new Set()); // Deselect all
+                                } else {
+                                  setSelectedWords(new Set(words)); // Select all (assuming words is string[])
+                                }
+                              }}
+                              className="text-xs border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-400 dark:hover:text-white"
+                            >
+                              {selectedWords.size === words.length ? storyTranslated.deselectAll : storyTranslated.selectAll}
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* Word list itself */}
+                        <div className="flex flex-wrap gap-2 items-center">
                           {words.map((word) => (
                             <Button
                               key={word}
@@ -782,22 +537,44 @@ function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Story Length Selector */}
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{translated.storyType.title}</span>
-                        <Select
-                          value={storyLength}
-                          onValueChange={(value) => setStoryLength(value as "short" | "medium" | "long")}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select length" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="short">{translated.storyType.short}</SelectItem>
-                            <SelectItem value="medium">{translated.storyType.medium}</SelectItem>
-                            <SelectItem value="long">{translated.storyType.long}</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {/* Story Length Selector & Conditional Clear Story Button */}
+                      <div className="flex items-center justify-between gap-4">
+                        {/* Story Length Selector (Left side) */}
+                        <div className="flex items-center gap-x-2"> {/* Reduced gap for story length title and select */}
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{translated.storyType.title}</span>
+                          <Select
+                            value={storyLength}
+                            onValueChange={(value) => setStoryLength(value as "short" | "medium" | "long")}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Select length" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="short">{translated.storyType.short}</SelectItem>
+                              <SelectItem value="medium">{translated.storyType.medium}</SelectItem>
+                              <SelectItem value="long">{translated.storyType.long}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Clear Story Button (Right side, conditional) */}
+                        {story && (
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              setStory("");
+                              setHighlightedStory("");
+                              setImageUrl(null);
+                              setAudioSrc(null);
+                              setStory(null); // Ensures the story section is hidden
+                            }}
+                            className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
+                            title={translated.clearStory}
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            {translated.clearStory}
+                          </Button>
+                        )}
                       </div>
 
                       {/* Generate Button */}
@@ -880,7 +657,7 @@ function DashboardPage() {
                                     </Button>
                                     <div className="flex items-center gap-2">
                                       <Button
-                                        onClick={handleSaveStory}
+                                        onClick={() => handleSaveStory(story, imageUrl, translated)}
                                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                                         variant="default"
                                       >
@@ -903,7 +680,7 @@ function DashboardPage() {
                               </div>
                             </div>
 
-                            {/* Generated Image */}
+                            {/* Generated Image (Now only the image container) */}
                             {imageUrl && (
                               <div className="relative group h-full">
                                 <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-md h-full">
@@ -918,8 +695,10 @@ function DashboardPage() {
                                 </div>
                               </div>
                             )}
+                             {!imageUrl && story && <div />} {/* Keep placeholder for grid structure if story but no image */}
                           </div>
 
+                          {/* Regenerate Button */}
                           {story && (
                             <Button
                               onClick={handleGenerateStory}
@@ -940,23 +719,6 @@ function DashboardPage() {
                               )}
                             </Button>
                           )}
-
-                          <div className="flex justify-end">
-                            <Button
-                              variant="ghost"
-                              onClick={() => {
-                                setStory("");
-                                setHighlightedStory("");
-                                setImageUrl(null);
-                                setAudioSrc(null);
-                                setStory(null);
-                              }}
-                              className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30"
-                            >
-                              <X className="h-4 w-4 mr-2" />
-                              {translated.clearStory}
-                            </Button>
-                          </div>
                         </div>
                       )}
                     </div>
@@ -999,14 +761,36 @@ function DashboardPage() {
                                     setIsStorySelected(true);
                                   }
                                 }}
-                                className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
+                                className="relative group cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
                               >
-                                <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
-                                  {savedStory.story.split(".")[0]}.
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  {new Date(savedStory.created_at).toLocaleDateString()}
-                                </p>
+                                <div className="pr-6">
+                                  <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
+                                    {savedStory.story.split(".")[0]}.
+                                  </p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {new Date(savedStory.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute top-1/2 right-2 transform -translate-y-1/2 h-7 w-7 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteStory(savedStory.id);
+                                        }}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{translated.deleteStory || "Delete story"}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                             ))
                           )}

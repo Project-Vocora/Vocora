@@ -4,37 +4,21 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { MessageSquare, X, Send } from "lucide-react"
+import { X, Send } from "lucide-react"
 import { useLanguage } from "@/lang/LanguageContext"
 import Image from "next/image";
-import { supabase } from "@/lib/supabase";
 import Translations from "@/lang/chatbox"
 import ReactMarkdown from "react-markdown";
-import router from "next/router"
+import { useUserPreferences } from "@/hooks/account/useUserPreferences";
 
 export function SupportChat() {
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
+  const { fetchUserData } = useUserPreferences(setPracticeLang);
+  
   useEffect(() => {
-    const getPracticeLang = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
-      if (!session) {
-        router.push("/login");
-        return;
-      }
+    fetchUserData();
+  }, [fetchUserData]);
 
-      const { data } = await supabase
-        .from("user_preferences")
-        .select("practice_lang")
-        .eq("uid", session.user.id)
-        .single();
-
-      if (data?.practice_lang && ["en", "es", "zh"].includes(data.practice_lang)) {
-        setPracticeLang(data.practice_lang);
-      }
-    };
-    getPracticeLang();
-  }, []);
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput]= useState("")
   const [messages, setMessages]= useState<{ role: "user" | "ai"; content: string }[]>([])

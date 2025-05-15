@@ -4,6 +4,7 @@ export function useStoryGenerator() {
   const [story, setStory] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [highlightedStory, setHighlightedStory] = useState<string>("");
 
   const generateStory = async (words: string[], length: string = "medium") => {
     const response = await fetch("/api/generate-story", {
@@ -39,5 +40,28 @@ export function useStoryGenerator() {
     }
   };
 
-  return { story, imageUrl, loading, generateStory, generateImageFromStory, setStory, setImageUrl };
+  const applyHighlighting = (text: string, selectedWords: Set<string>) => {
+    let highlighted = text;
+    Array.from(selectedWords).forEach((word) => {
+      const regex = new RegExp(`\\b${word.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&")}\\b`, "gi");
+      highlighted = highlighted.replace(
+        regex,
+        `<span class="bg-yellow-300 font-bold px-1 rounded">${word}</span>`
+      );
+    });
+    setHighlightedStory(highlighted);
+  };
+
+  return {
+    story,
+    highlightedStory,
+    setHighlightedStory,
+    loading,
+    generateStory,
+    generateImageFromStory,
+    setStory,
+    imageUrl,
+    setImageUrl,
+    applyHighlighting
+  };
 }

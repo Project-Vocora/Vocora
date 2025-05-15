@@ -15,6 +15,8 @@ const storyGenerator = {
         speechError1:"Generate a story first!",
         speechError2: "Failed to generate audio.",
         typeWord: "Type a new word...", 
+        selectAll: "Select All",
+        deselectAll: "Deselect All",
     },
     es: {
         title: "Lista de vocabulario: ",
@@ -30,6 +32,8 @@ const storyGenerator = {
         speechError1:"¡Genera una historia primero!",
         speechError2: "Error al generar audio.",
         typeWord: "Escribe una nueva palabra...",
+        selectAll: "Seleccionar todo",
+        deselectAll: "Deseleccionar todo",
     },
     zh: {
         title: "词汇列表：",
@@ -45,6 +49,8 @@ const storyGenerator = {
         speechError1:"先生成一个故事！",
         speechError2: "生成音频失败。",
         typeWord: "输入一个新单词...",
+        selectAll: "全选",
+        deselectAll: "取消全选",
     },
   };
   

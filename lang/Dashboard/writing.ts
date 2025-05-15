@@ -1,7 +1,5 @@
 "use client";
 
-// lang/Footer.ts
-
 const Translations = {
     en: {
         title: "Practice your writing!",
