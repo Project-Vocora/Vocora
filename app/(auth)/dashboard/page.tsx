@@ -119,6 +119,11 @@ function DashboardPage() {
     toast.success("Deleted word");
   };
 
+  const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
+    setPracticeLang(val);
+    await updatePracticeLang(val);
+  };
+  
   // Toggle word selection
   const toggleWord = (word: string) => {
     setSelectedWords((prev) => {
