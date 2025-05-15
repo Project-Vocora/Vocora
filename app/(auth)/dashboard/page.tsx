@@ -25,6 +25,7 @@ import Translations from "@/lang/Dashboard/writing";
 import { useSetLanguageFromURL } from "@/hooks/useSetLanguageFromURL";
 import { useSaveStory } from "@/hooks/story-generator/useSaveStory";
 import { useUserPreferences } from "@/hooks/account/useUserPreferences";
+import { useWritingFeedback } from "@/hooks/writing/useWritingFeedback";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
@@ -42,15 +43,13 @@ function DashboardPage() {
   const {hoveredWord, setHoveredWord, definitions, handleAddHoveredWord } = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
   const [isStorySelected, setIsStorySelected] = useState<boolean>(false);
-  const [input, setInput] = useState("");
-  const [reply, setReply] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showWriting, setShowWriting] = useState(false);
   const [showWordList, setShowWordList] = useState(false);
   const [showStoryGenerator, setShowStoryGenerator] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const {savedStories, isStorySaved, savingMessage, setSavingMessage, fetchSavedStories, handleSaveStory, handleDeleteStory} = useSaveStory(practiceLang, language);
-  const { updatePracticeLang } = useUserPreferences(setPracticeLang);
+  const { updatePracticeLang, fetchUserData } = useUserPreferences(setPracticeLang);
+  const { input, setInput, reply, loading, sendForFeedback} = useWritingFeedback(practiceLang, language);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -68,6 +67,10 @@ function DashboardPage() {
     setSelectedStory(null);
     setIsStorySelected(false);
   }, [practiceLang]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const handleGenerateStory = async () => {
     if (selectedWords.size === 0) {
@@ -121,18 +124,18 @@ function DashboardPage() {
     await updatePracticeLang(val);
 };
 
-    // Toggle word selection
-    const toggleWord = (word: string) => {
-      setSelectedWords((prev) => {
-        const newSelectedWords = new Set(prev);
-        if (newSelectedWords.has(word)) {
-          newSelectedWords.delete(word);
-        } else {
-          newSelectedWords.add(word);
-        }
-        return newSelectedWords;
-      });
-    };
+  // Toggle word selection
+  const toggleWord = (word: string) => {
+    setSelectedWords((prev) => {
+      const newSelectedWords = new Set(prev);
+      if (newSelectedWords.has(word)) {
+        newSelectedWords.delete(word);
+      } else {
+        newSelectedWords.add(word);
+      }
+      return newSelectedWords;
+    });
+  };
 
     // Delete all words
   const handleDeleteAllWords = async () => {
@@ -159,27 +162,6 @@ function DashboardPage() {
     } catch (error) {
       console.error("Error deleting all words:", error);
       toast.error("Failed to delete all words");
-    }
-  };
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    setLoading(true);
-    setReply(""); // Clear old reply
-    try {
-      const response = await fetch("/api/writing_prac", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, practiceLang, language }),
-      });
-
-      const data = await response.json();
-      setReply(data.reply || "No feedback received.");
-    } catch (err) {
-      console.error(err);
-      setReply("Error getting feedback. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -367,10 +349,10 @@ function DashboardPage() {
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           placeholder={`${Translations[language].prompt} ${practiceLang}...`}
-                          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                          onKeyDown={(e) => e.key === "Enter" && sendForFeedback()}
                           className="mb-4"
                         />
-                        <Button onClick={handleSend} disabled={loading} className="w-full">
+                        <Button onClick={sendForFeedback} disabled={loading} className="w-full">
                           {loading ? "Checking..." : "Submit"}
                         </Button>
                       </div>
