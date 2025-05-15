@@ -7,27 +7,42 @@ export function useSaveStory(practiceLang: "en" | "es" | "zh", language: string)
   const [isStorySaved, setIsStorySaved] = useState(false);
   const [savedStories, setSavedStories] = useState<any[]>([]);
   const [savingMessage, setSavingMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchSavedStories = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      setIsLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { data, error } = await supabase
-      .from("user_stories")
-      .select("*")
-      .eq("uid", user.id)
-      .eq("language", practiceLang)
-      .order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("user_stories")
+        .select("*")
+        .eq("uid", user.id)
+        .eq("language", practiceLang)
+        .order("created_at", { ascending: false });
 
-    if (!error && data) setSavedStories(data);
-    else console.error("Error fetching saved stories:", error);
+      if (error) {
+        console.error("Error fetching saved stories:", error);
+        toast.error("Failed to load saved stories");
+        return;
+      }
+
+      setSavedStories(data || []);
+    } catch (err) {
+      console.error("Error in fetchSavedStories:", err);
+      toast.error("Failed to load saved stories");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
+    setSavedStories([]);
     fetchSavedStories();
   }, [practiceLang]);
 
-  const handleSaveStory = async (story: string, imageUrl: string | null, translated: any) => {
+  const handleSaveStory = async (story: string, imageUrl: string | null, translated: any, translatedStory: string | null) => {
     if (!story || !imageUrl) {
       toast.error("No story or image to save");
       return;
@@ -75,6 +90,7 @@ export function useSaveStory(practiceLang: "en" | "es" | "zh", language: string)
             {
               uid: user.id,
               story,
+              translated_story: translatedStory,
               image: base64Image,
               language: practiceLang,
               created_at: new Date().toISOString(),
@@ -92,13 +108,25 @@ export function useSaveStory(practiceLang: "en" | "es" | "zh", language: string)
     }
   };
 
-   
-  
   const handleDeleteStory = async (id: number) => {
-    const { error } = await supabase.from("saved_stories").delete().eq("id", id);
-    if (error) return toast.error("Failed to delete");
-    setSavedStories((prev) => prev.filter((s) => s.id !== id));
-    toast.success("Story deleted");
+    try {
+      const { error } = await supabase
+        .from("user_stories")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting story:", error);
+        toast.error("Failed to delete story");
+        return;
+      }
+
+      setSavedStories((prev) => prev.filter((s) => s.id !== id));
+      toast.success("Story deleted successfully");
+    } catch (err) {
+      console.error("Error in handleDeleteStory:", err);
+      toast.error("Failed to delete story");
+    }
   };
 
   return {
@@ -109,5 +137,6 @@ export function useSaveStory(practiceLang: "en" | "es" | "zh", language: string)
     fetchSavedStories,
     handleSaveStory,
     handleDeleteStory,
+    isLoading,
   };
 }

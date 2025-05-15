@@ -2,7 +2,7 @@
 import {Suspense, useState, useEffect} from "react";
 import {useLanguage} from "@/lang/LanguageContext";
 import {supabase} from "@/lib/supabase";
-import {Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus} from "lucide-react"
+import {Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus, ChevronDown} from "lucide-react"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
@@ -49,10 +49,12 @@ function DashboardPage() {
   const [showWordList, setShowWordList] = useState(false);
   const [showStoryGenerator, setShowStoryGenerator] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
-  const {savedStories, isStorySaved, savingMessage, setSavingMessage, fetchSavedStories, handleSaveStory, handleDeleteStory} = useSaveStory(practiceLang, language);
+  const {savedStories, isStorySaved, savingMessage, setSavingMessage, fetchSavedStories, handleSaveStory, handleDeleteStory, isLoading} = useSaveStory(practiceLang, language);
   const {updatePracticeLang, fetchUserData } = useUserPreferences(setPracticeLang);
   const {input, setInput, reply, loading, sendForFeedback} = useWritingFeedback(practiceLang, language);
   const langDisplay = languageDisplayNames[language];
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [showSavedTranslation, setShowSavedTranslation] = useState(false);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -147,7 +149,7 @@ function DashboardPage() {
       alert(storyTranslated.listError);
       return;
     }
-    const result = await generateStory(Array.from(selectedWords), storyLength, practiceLang);
+    const result = await generateStory(Array.from(selectedWords), storyLength, practiceLang, language);
     if (result) {
       applyHighlighting(result, selectedWords);
       await generateImageFromStory(result);
@@ -647,10 +649,19 @@ function DashboardPage() {
                                 {/* Translation */}
                                 {translation && (
                                   <div className="text-lg text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
-                                    <div className="font-medium mb-2">{storyTranslated.translationLabel}:</div>
-                                    <div className="italic">
-                                      {translation}
-                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      onClick={() => setShowTranslation(!showTranslation)}
+                                      className="flex items-center gap-2 mb-2 hover:bg-slate-100 dark:hover:bg-slate-700 w-full justify-between"
+                                    >
+                                      <span>{storyTranslated.translationLabel}</span>
+                                      <ChevronDown className={`h-4 w-4 transition-transform ${showTranslation ? 'rotate-180' : ''}`} />
+                                    </Button>
+                                    {showTranslation && (
+                                      <div className="italic animate-in fade-in slide-in-from-top-1 duration-200">
+                                        {translation}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
 
@@ -668,7 +679,7 @@ function DashboardPage() {
                                     </Button>
                                     <div className="flex items-center gap-2">
                                       <Button
-                                        onClick={() => handleSaveStory(story, imageUrl, translated)}
+                                        onClick={() => handleSaveStory(story, imageUrl, translated, translation)}
                                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                                         variant="default"
                                       >
@@ -753,7 +764,11 @@ function DashboardPage() {
                       {/* Left Side: */}
                       <div className="w-1/3 border-r border-slate-200 dark:border-slate-700 pr-4">
                         <div className="space-y-4">
-                          {savedStories.length === 0 ? (
+                          {isLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+                            </div>
+                          ) : savedStories.length === 0 ? (
                             <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                               {translated.saveStoryDescription}
                             </div>
@@ -763,16 +778,18 @@ function DashboardPage() {
                                 key={savedStory.id}
                                 onClick={() => {
                                   if (selectedStory?.id === savedStory.id) {
-                                    // Deselect the story
                                     setSelectedStory(null);
                                     setIsStorySelected(false);
                                   } else {
-                                    // Select the new story
                                     setSelectedStory(savedStory);
                                     setIsStorySelected(true);
                                   }
                                 }}
-                                className="relative group cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 p-4 rounded-md transition-all"
+                                className={`relative group cursor-pointer p-4 rounded-md transition-all ${
+                                  selectedStory?.id === savedStory.id 
+                                    ? "bg-purple-50 dark:bg-purple-900/20" 
+                                    : "hover:bg-slate-100 dark:hover:bg-slate-700"
+                                }`}
                               >
                                 <div className="pr-6">
                                   <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
@@ -811,19 +828,36 @@ function DashboardPage() {
                       {/* Right Side */}
                       <div className="w-2/3 pl-4">
                         {selectedStory ? (
-                          <div>
-                            <div className="flex-1">
-                              <div className="prose dark:prose-invert">
-                                <ReactMarkdown>{selectedStory.story}</ReactMarkdown>
-                              </div>
+                          <div className="space-y-6">
+                            <div className="prose dark:prose-invert">
+                              <ReactMarkdown>{selectedStory.story}</ReactMarkdown>
                             </div>
+
                             {selectedStory.image && (
-                              <div className="mt-4 flex justify-center">
+                              <div className="flex justify-center">
                                 <img
                                   src={selectedStory.image}
                                   alt={selectedStory.title || "Story Image"}
-                                  className="w-1/2 h-auto object-cover rounded-lg shadow-md"
+                                  className="w-2/3 h-auto object-cover rounded-lg shadow-md"
                                 />
+                              </div>
+                            )}
+
+                            {selectedStory.translated_story && (
+                              <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => setShowSavedTranslation(!showSavedTranslation)}
+                                  className="flex items-center gap-2 mb-2 hover:bg-slate-100 dark:hover:bg-slate-700 w-full justify-between"
+                                >
+                                  <span>{storyTranslated.translationLabel}</span>
+                                  <ChevronDown className={`h-4 w-4 transition-transform ${showSavedTranslation ? 'rotate-180' : ''}`} />
+                                </Button>
+                                {showSavedTranslation && (
+                                  <div className="text-slate-600 dark:text-slate-400 italic animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <ReactMarkdown>{selectedStory.translated_story}</ReactMarkdown>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>

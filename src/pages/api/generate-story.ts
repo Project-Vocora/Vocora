@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
-  const { words, length, practiceLang } = req.body;
+  const { words, length, practiceLang, userLang = "en" } = req.body;
 
   // This statement ensures that words are being provided and are not empty
   if (!words || words.length === 0) {
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       messages: [
         {
           role: "user",
-          content: `Translate this story to English, maintaining the same meaning and tone:
+          content: `Translate this story to ${userLang === "es" ? "Spanish" : userLang === "zh" ? "Mandarin Chinese" : "English"}, maintaining the same meaning and tone:
 
           "${originalStory}"
           

@@ -7,13 +7,13 @@ export function useStoryGenerator() {
   const [loading, setLoading] = useState(false);
   const [highlightedStory, setHighlightedStory] = useState<string>("");
 
-  const generateStory = async (words: string[], length: string = "medium", practiceLang: "en" | "es" | "zh") => {
+  const generateStory = async (words: string[], length: string = "medium", practiceLang: "en" | "es" | "zh", userLang: "en" | "es" | "zh" = "en") => {
     try {
       setLoading(true);
       const response = await fetch("/api/generate-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ words, length, practiceLang }),
+        body: JSON.stringify({ words, length, practiceLang, userLang }),
       });
 
       const data = await response.json();
