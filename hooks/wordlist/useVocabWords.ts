@@ -47,5 +47,19 @@ export function useVocabWords(language: string) {
     setWords(prev => prev.filter(word => word !== wordToDelete));
   };
 
-  return { words, setWords, addWord, deleteWord };
+  const deleteAllWords = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "No user" };
+
+    const { error } = await supabase
+      .from("vocab_words")
+      .delete()
+      .eq("uid", user.id)
+      .eq("language", language);
+
+    if (!error) setWords([]);
+    return { error };
+  };
+
+  return { words, setWords, addWord, deleteWord, deleteAllWords };
 }

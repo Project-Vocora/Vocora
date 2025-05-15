@@ -7,12 +7,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { message, practiceLang, language, history, } = req.body;
 
-  console.log("[API] Incoming writing feedback request:");
-  console.log("  message:", message);
-  console.log("  practiceLang:", practiceLang);
-  console.log("  nativeLang:", language);
-  console.log("  history:", history);
-
   if (!message || !practiceLang) {
     return res.status(400).json({ error: "Missing message or language" });
   }

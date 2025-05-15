@@ -1,46 +1,47 @@
 "use client";
-import { Suspense, useState, useEffect } from "react";
-import { useLanguage } from "@/lang/LanguageContext";
-import { supabase } from "@/lib/supabase";
-import { Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useRouter } from "next/navigation";
+import {Suspense, useState, useEffect} from "react";
+import {useLanguage} from "@/lang/LanguageContext";
+import {supabase} from "@/lib/supabase";
+import {Bookmark, Lightbulb, List, MessageSquare, Mic, Sparkles, X, Plus} from "lucide-react"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Button} from "@/components/ui/button"
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
+import {useRouter} from "next/navigation";
 import dashBoardTranslations from "@/lang/Dashboard";
-import { Navbar } from "@/components/dashboard/navbar";
+import {Navbar} from "@/components/dashboard/navbar";
 import {SupportChat} from "@/components/support-chat";
 import storyGenerator from "@/lang/Story-Generator/story-generator";
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
-import { ScrollToTop } from "@/components/scroll-to-top"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Loader2 } from "lucide-react"
-import { useVocabWords } from "@/hooks/wordlist/useVocabWords";
-import { useStoryGenerator } from "@/hooks/story-generator/useStoryGenerator";
-import { useAudio } from "@/hooks/story-generator/useAudio";
-import { useHoverWord } from "@/hooks/story-generator/useHoverDefinitions";
+import {Input} from "@/components/ui/input"
+import {toast} from "sonner"
+import {ScrollToTop} from "@/components/scroll-to-top"
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
+import {Loader2} from "lucide-react"
+import {useVocabWords} from "@/hooks/wordlist/useVocabWords";
+import {useStoryGenerator} from "@/hooks/story-generator/useStoryGenerator";
+import {useAudio} from "@/hooks/story-generator/useAudio";
+import {useHoverWord} from "@/hooks/story-generator/useHoverDefinitions";
 import ReactMarkdown from "react-markdown";
 import Translations from "@/lang/Dashboard/writing";
-import { useSetLanguageFromURL } from "@/hooks/useSetLanguageFromURL";
-import { useSaveStory } from "@/hooks/story-generator/useSaveStory";
-import { useUserPreferences } from "@/hooks/account/useUserPreferences";
-import { useWritingFeedback } from "@/hooks/writing/useWritingFeedback";
+import {useSetLanguageFromURL} from "@/hooks/useSetLanguageFromURL";
+import {useSaveStory} from "@/hooks/story-generator/useSaveStory";
+import {useUserPreferences} from "@/hooks/account/useUserPreferences";
+import {useWritingFeedback} from "@/hooks/writing/useWritingFeedback";
+import languageDisplayNames from "@/lang/Dashboard/practiceLangDisplay";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
-  const {language, setLanguage } = useLanguage();
+  const {language, setLanguage} = useLanguage();
   const router = useRouter();
   const translated = dashBoardTranslations[language];
   const storyTranslated = storyGenerator[language];
   const [newWord, setNewWord] = useState("");
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
   const [storyLength, setStoryLength] = useState<"short" | "medium" | "long">("medium");
-  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh">("en");
-  const {words, setWords, addWord, deleteWord } = useVocabWords(practiceLang);
-  const { story, setStory, imageUrl, setImageUrl, highlightedStory, setHighlightedStory, loading: storyLoading, generateStory, generateImageFromStory,applyHighlighting} = useStoryGenerator();
-  const {audioSrc, convertToSpeech, setAudioSrc } = useAudio();
-  const {hoveredWord, setHoveredWord, definitions, handleAddHoveredWord } = useHoverWord(practiceLang, words, setWords, story || "", language);
+  const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh" >("en");
+  const {words, setWords, addWord, deleteWord, deleteAllWords} = useVocabWords(practiceLang || "en");
+  const {story, setStory, imageUrl, setImageUrl, highlightedStory, setHighlightedStory, loading: storyLoading, generateStory, generateImageFromStory, applyHighlighting} = useStoryGenerator();
+  const {audioSrc, convertToSpeech, setAudioSrc} = useAudio();
+  const {hoveredWord, setHoveredWord, definitions, handleAddHoveredWord} = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
   const [isStorySelected, setIsStorySelected] = useState<boolean>(false);
   const [showWriting, setShowWriting] = useState(false);
@@ -48,9 +49,11 @@ function DashboardPage() {
   const [showStoryGenerator, setShowStoryGenerator] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const {savedStories, isStorySaved, savingMessage, setSavingMessage, fetchSavedStories, handleSaveStory, handleDeleteStory} = useSaveStory(practiceLang, language);
-  const { updatePracticeLang, fetchUserData } = useUserPreferences(setPracticeLang);
-  const { input, setInput, reply, loading, sendForFeedback} = useWritingFeedback(practiceLang, language);
+  const {updatePracticeLang, fetchUserData } = useUserPreferences(setPracticeLang);
+  const {input, setInput, reply, loading, sendForFeedback} = useWritingFeedback(practiceLang, language);
+  const langDisplay = languageDisplayNames[language];
 
+  // Check if user is authenticated
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -59,38 +62,29 @@ function DashboardPage() {
     checkAuth();
   }, [router]);
 
+  // Set saving message when language changes
   useEffect(() => {
     setSavingMessage(translated.saveStory);
   }, [language]);
 
+  // Reset selected story when practice language changes
   useEffect(() => {
     setSelectedStory(null);
     setIsStorySelected(false);
   }, [practiceLang]);
 
+  // Fetch user data and preferences
   useEffect(() => {
     fetchUserData();
   }, []);
 
-  const handleGenerateStory = async () => {
-    if (selectedWords.size === 0) {
-      alert(storyTranslated.listError);
-      return;
-    }
-    const result = await generateStory(Array.from(selectedWords), storyLength);
-    if (result) {
-      applyHighlighting(result, selectedWords);
-      await generateImageFromStory(result);
-    } else {
-      console.error("Failed to generate story.");
-    }
+  // Handle switching the practice language and sync changes to the database
+  const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
+    setPracticeLang(val);
+    await updatePracticeLang(val);
   };
 
-  const handleConvertToSpeech = async () => {
-    if (!story) return alert(storyTranslated.speechError1);
-    await convertToSpeech(story);
-  };
-
+  // Add new word to the list
   const handleAddWord = async () => {
     const trimmed = newWord.trim();
     if (!trimmed) return;
@@ -109,22 +103,30 @@ function DashboardPage() {
     }
   };
 
+  // Delete a single word from the list
   const handleDeleteWord = async (word: string) => {
     await deleteWord(word);
+
     setSelectedWords((prev) => {
       const updated = new Set(prev);
       updated.delete(word);
       return updated;
     });
+
     toast.success("Deleted word");
   };
 
-  const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
-    setPracticeLang(val);
-    await updatePracticeLang(val);
+  // Delete all vocabulary words from the list
+  const handleDeleteAllWords = async () => {
+    const { error } = await deleteAllWords();
+    if (error) {
+      toast.error("Failed to delete all words");
+    } else {
+      toast.success("All words deleted successfully");
+    }
   };
   
-  // Toggle word selection
+  // Toggle selection state for a
   const toggleWord = (word: string) => {
     setSelectedWords((prev) => {
       const newSelectedWords = new Set(prev);
@@ -137,32 +139,25 @@ function DashboardPage() {
     });
   };
 
-    // Delete all words
-  const handleDeleteAllWords = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Please log in to delete words");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("vocab_words")
-        .delete()
-        .eq("uid", user.id)
-        .eq("language", language);
-
-      if (error) {
-        toast.error("Failed to delete all words");
-        return;
-      }
-
-      setWords([]);
-      toast.success("All words deleted successfully");
-    } catch (error) {
-      console.error("Error deleting all words:", error);
-      toast.error("Failed to delete all words");
+  // Handle story generation
+  const handleGenerateStory = async () => {
+    if (selectedWords.size === 0) {
+      alert(storyTranslated.listError);
+      return;
     }
+    const result = await generateStory(Array.from(selectedWords), storyLength);
+    if (result) {
+      applyHighlighting(result, selectedWords);
+      await generateImageFromStory(result);
+    } else {
+      console.error("Failed to generate story.");
+    }
+  };
+
+  // Handle audio generation
+  const handleConvertToSpeech = async () => {
+    if (!story) return alert(storyTranslated.speechError1);
+    await convertToSpeech(story);
   };
 
   if (!languageReady) {
@@ -191,9 +186,9 @@ function DashboardPage() {
                           <SelectValue placeholder="Select language" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="zh">中文</SelectItem>
+                          <SelectItem value="en">{langDisplay["en"]}</SelectItem>
+                          <SelectItem value="es">{langDisplay["es"]}</SelectItem>
+                          <SelectItem value="zh">{langDisplay["zh"]}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

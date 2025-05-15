@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function useWritingFeedback(practiceLang: string, language: string) {
   const [input, setInput] = useState("");
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setReply("");
+    setInput("");
+  }, [practiceLang, language]);
+  
   const sendForFeedback = async () => {
     if (!input.trim()) return;
     setLoading(true);
