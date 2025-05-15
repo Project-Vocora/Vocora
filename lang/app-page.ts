@@ -2,7 +2,7 @@
 
 const homeTranslations = {
     en: {
-      heading: "Learn Languages with AI",
+      heading: "Language Reinforcement with AI",
       description: "Using cutting-edge AI technology to help push your language learning journey to the next level.",
       buttonText: "Let's Get Started",
       buttonText2: "Learn More",
@@ -16,8 +16,8 @@ const homeTranslations = {
       signUp: "Sign Up for Free"
     },
     es: {
-      heading: "Aprende idiomas con AI",
-      description: "Usando tecnología de AI de vanguardia para ayudar a impulsar tu viaje de aprendizaje de idiomas al siguiente nivel.",
+      heading: "Refuerzo del idioma con IA",
+      description: "Usando tecnología de IA de vanguardia para ayudar a impulsar tu viaje de aprendizaje de idiomas al siguiente nivel.",
       buttonText: "Empecemos",
       buttonText2: "Aprender más",
       feature1: "Historias Generadas",
