@@ -50,7 +50,7 @@ export default function HomePage() {
                     {translated.buttonText}
                   </Button>
                 </Link>
-                <Link href="/dashboard" className="w-full sm:w-auto">
+                {/* <Link href="/dashboard" className="w-full sm:w-auto">
                   <Button
                     size="lg"
                     variant="outline"
@@ -58,7 +58,7 @@ export default function HomePage() {
                   >
                     {translated.buttonText2}
                   </Button>
-                </Link>
+                </Link> */}
               </div>
             </motion.div>
           </div>
