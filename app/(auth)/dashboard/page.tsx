@@ -27,6 +27,7 @@ import {useSaveStory} from "@/hooks/story-generator/useSaveStory";
 import {useUserPreferences} from "@/hooks/account/useUserPreferences";
 import {useWritingFeedback} from "@/hooks/writing/useWritingFeedback";
 import languageDisplayNames from "@/lang/Dashboard/practiceLangDisplay";
+import { splitIntoWords, cleanWord } from "@/lib/utils";
 
 function DashboardPage() {
   const languageReady = useSetLanguageFromURL();
@@ -39,7 +40,7 @@ function DashboardPage() {
   const [storyLength, setStoryLength] = useState<"short" | "medium" | "long">("medium");
   const [practiceLang, setPracticeLang] = useState<"en" | "es" | "zh" >("en");
   const {words, setWords, addWord, deleteWord, deleteAllWords} = useVocabWords(practiceLang || "en");
-  const {story, setStory, imageUrl, setImageUrl, highlightedStory, setHighlightedStory, loading: storyLoading, generateStory, generateImageFromStory, applyHighlighting} = useStoryGenerator();
+  const {story, setStory, translation, setTranslation, imageUrl, setImageUrl, highlightedStory, setHighlightedStory, loading: storyLoading, generateStory, generateImageFromStory, applyHighlighting} = useStoryGenerator();
   const {audioSrc, convertToSpeech, setAudioSrc} = useAudio();
   const {hoveredWord, setHoveredWord, definitions, handleAddHoveredWord} = useHoverWord(practiceLang, words, setWords, story || "", language);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
@@ -81,6 +82,7 @@ function DashboardPage() {
   // Handle switching the practice language and sync changes to the database
   const handlePracticeLangChange = async (val: "en" | "es" | "zh") => {
     setPracticeLang(val);
+    setSelectedWords(new Set());
     await updatePracticeLang(val);
   };
 
@@ -145,7 +147,7 @@ function DashboardPage() {
       alert(storyTranslated.listError);
       return;
     }
-    const result = await generateStory(Array.from(selectedWords), storyLength);
+    const result = await generateStory(Array.from(selectedWords), storyLength, practiceLang);
     if (result) {
       applyHighlighting(result, selectedWords);
       await generateImageFromStory(result);
@@ -588,8 +590,8 @@ function DashboardPage() {
                           }`}
                         >
                           {storyLoading ? (
-                            <div className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                            <div className="flex items-center justify-center gap-2">
+                              <Loader2 className="h-5 w-5 animate-spin" />
                               <span>{translated.generateLoad}</span>
                             </div>
                           ) : (
@@ -605,26 +607,26 @@ function DashboardPage() {
                             {/* Story and Speech Controls */}
                             <div className="space-y-4">
                               <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-md">
-
-                                <div className="text-lg text-slate-700 dark:text-slate-300">
-                                  {story?.split(/\b/).map((word, index) => {
-                                    const clean = word.replace(/[^\w]/g, "").toLowerCase();
-                                    return clean ? (
+                                {/* Original Story */}
+                                <div className="text-lg text-slate-700 dark:text-slate-300 mb-6">
+                                  {story && splitIntoWords(story).map((word, index) => {
+                                    const cleanedWord = cleanWord(word);
+                                    return cleanedWord ? (
                                       <span
                                         key={index}
-                                        className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(clean) ? 'bg-yellow-300' : ''}`}
-                                        onMouseEnter={() => setHoveredWord({ word: clean, index })}
+                                        className={`relative inline-block cursor-pointer hover:underline ${selectedWords.has(cleanedWord) ? 'bg-yellow-300' : ''}`}
+                                        onMouseEnter={() => setHoveredWord({ word: cleanedWord, index })}
                                         onMouseLeave={() => setHoveredWord(null)}
                                       >
                                         {word}
-                                        {hoveredWord?.word === clean && hoveredWord?.index === index && definitions[clean] && (
+                                        {hoveredWord && hoveredWord.word === cleanedWord && hoveredWord.index === index && definitions[cleanedWord] && (
                                           <div className="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border rounded shadow p-3 w-60 text-sm z-50">
-                                            <p className="font-bold">{clean}</p>
-                                              {definitions[clean]?.translatedWord && (
-                                                <p className="text-sm text-gray-500 italic">({definitions[clean].translatedWord})</p>
-                                              )}
-                                              <p className="italic text-gray-500">{definitions[clean].partOfSpeech}</p>
-                                              <p>{definitions[clean].definition}</p>
+                                            <p className="font-bold">{cleanedWord}</p>
+                                            {definitions[cleanedWord]?.translatedWord && (
+                                              <p className="text-sm text-gray-500 italic">({definitions[cleanedWord].translatedWord})</p>
+                                            )}
+                                            <p className="italic text-gray-500">{definitions[cleanedWord].partOfSpeech}</p>
+                                            <p>{definitions[cleanedWord].definition}</p>
 
                                             <Button
                                               onClick={handleAddHoveredWord}
@@ -641,6 +643,16 @@ function DashboardPage() {
                                     );
                                   })}
                                 </div>
+
+                                {/* Translation */}
+                                {translation && (
+                                  <div className="text-lg text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
+                                    <div className="font-medium mb-2">{storyTranslated.translationLabel}:</div>
+                                    <div className="italic">
+                                      {translation}
+                                    </div>
+                                  </div>
+                                )}
 
                                 <div className="mt-6 flex flex-col gap-4">
                                   <div className="flex gap-4">
@@ -709,8 +721,8 @@ function DashboardPage() {
                               }`}
                             >
                               {storyLoading ? (
-                                <div className="flex items-center gap-2">
-                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                <div className="flex items-center justify-center gap-2">
+                                  <Loader2 className="h-5 w-5 animate-spin" />
                                   <span>{translated.generateLoad}</span>
                                 </div>
                               ) : (
@@ -801,9 +813,9 @@ function DashboardPage() {
                         {selectedStory ? (
                           <div>
                             <div className="flex-1">
-                              <p className="text-sm text-slate-600 dark:text-slate-400">
-                                {selectedStory.story}
-                              </p>
+                              <div className="prose dark:prose-invert">
+                                <ReactMarkdown>{selectedStory.story}</ReactMarkdown>
+                              </div>
                             </div>
                             {selectedStory.image && (
                               <div className="mt-4 flex justify-center">

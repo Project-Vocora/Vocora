@@ -17,6 +17,7 @@ const storyGenerator = {
         typeWord: "Type a new word...", 
         selectAll: "Select All",
         deselectAll: "Deselect All",
+        translationLabel: "Translation",
     },
     es: {
         title: "Lista de vocabulario: ",
@@ -34,6 +35,7 @@ const storyGenerator = {
         typeWord: "Escribe una nueva palabra...",
         selectAll: "Seleccionar todo",
         deselectAll: "Deseleccionar todo",
+        translationLabel: "Traducción",
     },
     zh: {
         title: "词汇列表：",
@@ -51,6 +53,7 @@ const storyGenerator = {
         typeWord: "输入一个新单词...",
         selectAll: "全选",
         deselectAll: "取消全选",
+        translationLabel: "翻译",
     },
   };
   
