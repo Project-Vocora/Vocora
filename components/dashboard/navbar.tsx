@@ -13,7 +13,6 @@ import dashBoardTranslations from "@/lang/Dashboard";
 
 export function Navbar() {
     const { language } = useLanguage();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const translated = dashBoardTranslations[language];
   
     return (
@@ -29,7 +28,7 @@ export function Navbar() {
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-4">
-                    <Link href="/dashboard/progress">
+                    {/* <Link href="/dashboard/progress">
                         <Badge
                             variant="outline"
                             className="flex gap-1 items-center px-3 py-1.5 border-white/30 bg-white/20 text-white hover:bg-white/30 transition-colors cursor-pointer"
@@ -37,76 +36,55 @@ export function Navbar() {
                             <Sparkles className="h-3.5 w-3.5 text-white" />
                             <span>{translated.navBar.progressDays}</span>
                         </Badge>
-                    </Link>
+                    </Link> */}
 
-                    <Link href="/dashboard/account">
+                    {/* <Link href="/dashboard/account">
                         <Avatar>
                             <AvatarFallback className="bg-white/20 text-white">UV</AvatarFallback>
                         </Avatar>
-                    </Link>
+                    </Link> */}
 
                     <div className="border-l border-white/20 pl-4 ml-2">
                         <ThemeToggle />
                     </div>
 
                     <div className="border-l border-white/20 pl-4 ml-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-white/20">
-                            <Settings className="h-5 w-5" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>{translated.navBar.settings}</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>{translated.navBar.profile}</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <Link href="/">
-                            <DropdownMenuItem>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            <span>{translated.navBar.logout}</span>
-                            </DropdownMenuItem>
+                        <Link href="/" passHref>
+                            <Button variant="ghost" size="icon" className="rounded-full text-red-500 hover:bg-white/20" aria-label="Logout">
+                                <LogOut className="h-5 w-5" />
+                            </Button>
                         </Link>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                     </div>
                 </div>
 
-                {/* Mobile Menu Button */}
+                {/* Mobile Menu Button - Replaced with direct Logout Button */}
                 <div className="flex md:hidden items-center gap-4">
                     <div className="border-l border-white/20 pl-4">
                         <ThemeToggle />
                     </div>
-                    <button className="text-white p-1" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                        {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
+                    {/* Replaced hamburger menu with direct logout button for mobile */}
+                    <div className="pl-1">
+                        <Link href="/" passHref>
+                            <Button variant="ghost" size="icon" className="rounded-full text-red-500 hover:bg-white/20" aria-label="Logout">
+                                <LogOut className="h-6 w-6" /> {/* Adjusted icon size for mobile if necessary */}
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </div>
 
-            {/* Mobile Navigation */}
+            {/* Mobile Navigation - Removed as it's no longer needed with direct logout button */}
+            {/* 
             {mobileMenuOpen && (
                 <div className="md:hidden bg-purple-700 py-3 px-4 flex flex-col gap-3">
-                    <Link href="/dashboard/progress" className="py-2 flex items-center gap-2 text-white">
-                        <Sparkles className="h-3.5 w-3.5 text-white" />
-                        <span>{translated.navBar.progressDays}</span>
-                    </Link>
-                    <Link href="/dashboard/account" className="py-2 flex items-center gap-2 text-white">
-                        <User size={16} />
-                        <span>{translated.navBar.account}</span>
-                    </Link>
-                    <Link href="/dashboard/settings" className="py-2 flex items-center gap-2 text-white">
-                        <Settings size={16} />
-                        <span>{translated.navBar.settings}</span>
-                    </Link>
+                    
                     <Link href="/" className="py-2 flex items-center gap-2 text-white">
                         <LogOut size={16} />
                         <span>{translated.navBar.logout}</span>
                     </Link>
                 </div>
             )}
+            */}
       </header>
     );
 }

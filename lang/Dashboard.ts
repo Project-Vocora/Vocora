@@ -77,6 +77,7 @@ const dashBoardTranslations = {
 
         loading: "Loading...",
         footerText: "Built with ❤️ by Vocora - 2025",
+        deleteStory: "Delete Story",
     },
     es: {
         navBar:{
@@ -155,6 +156,7 @@ const dashBoardTranslations = {
 
         loading: "Cargando...",
         footerText: "Construido con ❤️ por Vocora - 2025",
+        deleteStory: "Eliminar historia",
     },
     zh: {
         navBar:{
@@ -232,6 +234,7 @@ const dashBoardTranslations = {
 
         loading: "加载中...",
         footerText: "由Vocora - 2025 ❤️构建",
+        deleteStory: "删除故事",
     },
   };
   
